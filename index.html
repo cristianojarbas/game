@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cristiano Jarbas Real Estate Tycoon</title>
+    <title>Cristiano Jarbas Magnata Imobiliário</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/phosphor-icons"></script>
@@ -26,8 +26,10 @@
         }
         .btn-primary:hover { opacity: 0.9; }
 
+        /* MODIFICAÇÃO: Cor do input para PRETO */
         .input-field {
-            @apply w-full p-2 bg-gray-700 border border-gray-600 rounded text-white mb-2 focus:border-accent focus:outline-none transition;
+            /* Adicionado text-black */
+            @apply w-full p-2 bg-white text-black border border-gray-600 rounded mb-2 focus:border-accent focus:outline-none transition;
         }
         .label-text {
             @apply block text-sm font-bold text-gray-400 mb-1 text-left;
@@ -96,18 +98,18 @@
 
         /* Grid Positioning (Perimeter Walk) */
         .space-start { grid-area: 5 / 5 / 6 / 6; }
-        .space-1-1   { grid-area: 5 / 4 / 6 / 5; }
-        .space-1-2   { grid-area: 5 / 3 / 6 / 4; }
-        .space-1-3   { grid-area: 5 / 2 / 6 / 3; }
-        .space-1-4   { grid-area: 5 / 1 / 6 / 2; }
-        .space-2-1   { grid-area: 4 / 1 / 5 / 2; }
-        .space-2-2   { grid-area: 3 / 1 / 4 / 2; }
-        .space-2-3   { grid-area: 2 / 1 / 3 / 2; }
-        .space-2-4   { grid-area: 1 / 1 / 2 / 2; }
-        .space-3-1   { grid-area: 1 / 2 / 2 / 3; }
-        .space-3-2   { grid-area: 1 / 3 / 2 / 4; }
-        .space-3-3   { grid-area: 1 / 4 / 2 / 5; }
-        .space-3-4   { grid-area: 1 / 5 / 2 / 6; }
+        .space-1-1 	{ grid-area: 5 / 4 / 6 / 5; }
+        .space-1-2 	{ grid-area: 5 / 3 / 6 / 4; }
+        .space-1-3 	{ grid-area: 5 / 2 / 6 / 3; }
+        .space-1-4 	{ grid-area: 5 / 1 / 6 / 2; }
+        .space-2-1 	{ grid-area: 4 / 1 / 5 / 2; }
+        .space-2-2 	{ grid-area: 3 / 1 / 4 / 2; }
+        .space-2-3 	{ grid-area: 2 / 1 / 3 / 2; }
+        .space-2-4 	{ grid-area: 1 / 1 / 2 / 2; }
+        .space-3-1 	{ grid-area: 1 / 2 / 2 / 3; }
+        .space-3-2 	{ grid-area: 1 / 3 / 2 / 4; }
+        .space-3-3 	{ grid-area: 1 / 4 / 2 / 5; }
+        .space-3-4 	{ grid-area: 1 / 5 / 2 / 6; }
 
         /* Center Display */
         .center-display {
@@ -134,60 +136,60 @@
     <header class="bg-gray-900 shadow-lg py-4 border-b border-gray-800">
         <div class="max-w-7xl mx-auto px-4 text-center">
             <h1 class="text-2xl md:text-3xl font-black text-white flex items-center justify-center gap-2">
-                <i class="ph ph-house-line text-secondary"></i> 
-                <span>Cristiano Jarbas <span class="text-primary">Tycoon</span></span>
+                <img src="https://exemplo.com/sua-foto.jpg" onerror="this.onerror=null; this.src='https://via.placeholder.com/32'" alt="Foto de Perfil" class="h-8 w-8 rounded-full object-cover border-2 border-accent mr-2">
+                <span>Cristiano Jarbas <span class="text-primary">Magnata</span></span>
             </h1>
         </div>
     </header>
 
     <main class="flex-grow p-4">
         <div id="game-status" class="text-center mb-4 text-sm md:text-lg font-semibold text-gray-400">
-            Market: <span id="market-display" class="text-white">...</span> | Budget: <span id="budget-display" class="text-white">...</span>
+            Mercado: <span id="market-display" class="text-white">...</span> | Orçamento Máximo: <span id="budget-display" class="text-white">...</span>
         </div>
 
         <div class="game-board">
             <div id="space-start" class="board-space space-start" onclick="handleSpaceClick('start')">
                 <i class="ph ph-flag-checkered text-3xl mb-1"></i>
-                START
+                INICIAR
             </div>
 
             <div id="space-1-1" class="board-space zone-1 disabled" onclick="handleSpaceClick('1-1')">
-                <i class="ph ph-money text-2xl mb-1"></i> Income
+                <i class="ph ph-money text-2xl mb-1"></i> Renda
             </div>
             <div id="space-1-2" class="board-space zone-1 disabled" onclick="handleSpaceClick('1-2')">
-                <i class="ph ph-piggy-bank text-2xl mb-1"></i> Savings
+                <i class="ph ph-piggy-bank text-2xl mb-1"></i> Dívidas
             </div>
             <div id="space-1-3" class="board-space zone-1 disabled" onclick="handleSpaceClick('1-3')">
-                <i class="ph ph-percent text-2xl mb-1"></i> Loan Type
+                <i class="ph ph-percent text-2xl mb-1"></i> Entrada
             </div>
             <div id="space-1-4" class="board-space zone-1 disabled" onclick="handleSpaceClick('1-4')">
-                <i class="ph ph-file-text text-2xl mb-1"></i> Pre-Approval
+                <i class="ph ph-file-text text-2xl mb-1"></i> Pré-Aprovação
             </div>
 
             <div id="space-2-1" class="board-space zone-2 disabled" onclick="handleSpaceClick('2-1')">
-                <i class="ph ph-magnifying-glass text-2xl mb-1"></i> Search
+                <i class="ph ph-magnifying-glass text-2xl mb-1"></i> Buscar
             </div>
             <div id="space-2-2" class="board-space zone-2 disabled" onclick="handleSpaceClick('2-2')">
-                <i class="ph ph-chart-bar text-2xl mb-1"></i> Comps
+                <i class="ph ph-chart-bar text-2xl mb-1"></i> Comparar
             </div>
             <div id="space-2-3" class="board-space zone-2 disabled" onclick="handleSpaceClick('2-3')">
-                <i class="ph ph-house-line text-2xl mb-1"></i> Select
+                <i class="ph ph-house-line text-2xl mb-1"></i> Selecionar
             </div>
             <div id="space-2-4" class="board-space zone-2 disabled" onclick="handleSpaceClick('2-4')">
-                <i class="ph ph-pencil-line text-2xl mb-1"></i> Offer
+                <i class="ph ph-pencil-line text-2xl mb-1"></i> Oferta
             </div>
 
             <div id="space-3-1" class="board-space zone-3 disabled" onclick="handleSpaceClick('3-1')">
-                <i class="ph ph-toolbox text-2xl mb-1"></i> Inspect
+                <i class="ph ph-toolbox text-2xl mb-1"></i> Inspeção
             </div>
             <div id="space-3-2" class="board-space zone-3 disabled" onclick="handleSpaceClick('3-2')">
-                <i class="ph ph-bank text-2xl mb-1"></i> Appraisal
+                <i class="ph ph-bank text-2xl mb-1"></i> Avaliação
             </div>
             <div id="space-3-3" class="board-space zone-3 disabled" onclick="handleSpaceClick('3-3')">
-                <i class="ph ph-file-pdf text-2xl mb-1"></i> Closing Disclosure
+                <i class="ph ph-file-pdf text-2xl mb-1"></i> Fechamento
             </div>
             <div id="space-3-4" class="board-space zone-3 disabled" onclick="handleSpaceClick('3-4')">
-                <i class="ph ph-key text-2xl mb-1"></i> Keys!
+                <i class="ph ph-key text-2xl mb-1"></i> Chaves!
             </div>
 
             <div class="center-display">
@@ -213,26 +215,26 @@
     </div>
 
     <script type="module">
-        // --- CONSTANTS & CONFIG ---
+        // --- CONSTANTES E CONFIGURAÇÃO ---
         const MARKET_SCENARIOS = {
             easy: {
-                name: "Starter Suburb", priceRange: [250000, 350000], taxRate: 0.0085, interestRate: 0.0625,
-                startSavings: 20000, startIncome: 75000, startDebts: { creditCard: 500, auto: 300, student: 100 }
+                name: "Subúrbio Inicial", priceRange: [250000, 350000], taxRate: 0.0085, interestRate: 0.0625,
+                startSavings: 30000, startIncome: 8000, startDebts: { cartao: 500, carro: 300, estudo: 100 }
             },
             medium: {
-                name: "Hot Metro", priceRange: [400000, 650000], taxRate: 0.0120, interestRate: 0.0650,
-                startSavings: 45000, startIncome: 120000, startDebts: { creditCard: 1000, auto: 500, student: 250 }
+                name: "Metrópole Quente", priceRange: [400000, 650000], taxRate: 0.0120, interestRate: 0.0650,
+                startSavings: 70000, startIncome: 14000, startDebts: { cartao: 1000, carro: 500, estudo: 250 }
             },
             hard: {
-                name: "Coastal Luxury", priceRange: [800000, 1200000], taxRate: 0.0065, interestRate: 0.0675,
-                startSavings: 90000, startIncome: 200000, startDebts: { creditCard: 1500, auto: 700, student: 500 }
+                name: "Luxo Litorâneo", priceRange: [800000, 1200000], taxRate: 0.0065, interestRate: 0.0675,
+                startSavings: 150000, startIncome: 25000, startDebts: { cartao: 1500, carro: 700, estudo: 500 }
             }
         };
 
         const stageOrder = ['start', '1-1', '1-2', '1-3', '1-4', '2-1', '2-2', '2-3', '2-4', '3-1', '3-2', '3-3', '3-4', 'complete'];
         const PMI_RATE = 0.005;
         const INSURANCE_COST = 1800;
-        const MAX_DTI = 0.43;
+        const MAX_DTI = 0.43; // Debt-to-Income Ratio
 
         let gameState = {
             stage: 'start',
@@ -251,11 +253,12 @@
         let currentListings = [];
 
         // --- UTILS ---
-        const formatCurrency = (amt) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(amt);
+        // Formato para Real Brasileiro (R$)
+        const formatCurrency = (amt) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 }).format(amt);
         const formatPercent = (val) => (val * 100).toFixed(1) + '%';
         const roundToNearest = (val, n) => Math.round(val / n) * n;
 
-        // --- CORE FUNCTIONS ---
+        // --- CORE FUNCTIONS (Mantidas em Inglês para clareza da programação) ---
         const getNextStage = (current) => {
             const idx = stageOrder.indexOf(current);
             return (idx !== -1 && idx < stageOrder.length - 1) ? stageOrder[idx + 1] : 'complete';
@@ -298,15 +301,15 @@
 
         window.handleSpaceClick = (id) => {
             if (!document.getElementById(`space-${id}`).classList.contains('disabled')) {
-                // If we are moving forward to the next stage, we might need to save input values
+                // Se estivermos avançando para a próxima etapa, precisamos salvar os valores de input
                 if (id === getNextStage(gameState.stage)) {
-                    // Capture inputs from Stage 1-1 (Income)
+                    // Captura inputs da Etapa 1-1 (Renda)
                     if (gameState.stage === '1-1') {
                         const newIncome = parseFloat(document.getElementById('input-income').value);
                         const newSavings = parseFloat(document.getElementById('input-savings').value);
                         saveGameState({ income: newIncome, savings: newSavings });
                     }
-                    // Capture inputs from Stage 1-2 (Debts)
+                    // Captura inputs da Etapa 1-2 (Dívidas)
                     if (gameState.stage === '1-2') {
                         let newDebts = {};
                         document.querySelectorAll('.debt-input').forEach(input => {
@@ -331,7 +334,7 @@
             location.reload();
         };
 
-        // --- RENDER FUNCTIONS ---
+        // --- RENDER FUNCTIONS (Tradução do conteúdo aqui) ---
         const renderCenterContent = (id) => {
             const content = document.getElementById('center-content');
             let html = '';
@@ -339,38 +342,41 @@
             switch(id) {
                 case 'start':
                     html = `
-                        <h2 class="text-3xl font-black text-secondary mb-4">Select Market</h2>
+                        <div class="mb-6">
+                            <img src="https://exemplo.com/seu-logo.png" onerror="this.onerror=null; this.src='https://via.placeholder.com/96x96?text=LOGO'" alt="Logo da Imobiliária" class="w-24 h-24 object-contain mx-auto">
+                        </div>
+                        <h2 class="text-3xl font-black text-secondary mb-4">Selecione o Mercado</h2>
                         <div class="grid gap-4 w-full">
                             ${Object.entries(MARKET_SCENARIOS).map(([k, v]) => `
                                 <button onclick="selectMarket('${k}')" class="bg-gray-800 p-4 rounded hover:bg-gray-700 border border-gray-600 text-left">
                                     <div class="font-bold text-accent text-lg">${v.name}</div>
-                                    <div class="text-sm text-gray-400">Entry: ${formatCurrency(v.priceRange[0])}</div>
+                                    <div class="text-sm text-gray-400">Preço Base: ${formatCurrency(v.priceRange[0])}</div>
                                 </button>
                             `).join('')}
                         </div>
                     `;
                     break;
-                case '1-1': // Income & Savings (EDITABLE)
+                case '1-1': // Renda e Poupança (EDITÁVEL)
                     html = `
-                        <h3 class="text-xl font-bold mb-4">Financial Audit</h3>
-                        <p class="text-sm text-gray-400 mb-4">Adjust your income and savings if needed:</p>
+                        <h3 class="text-xl font-bold mb-4">Auditoria Financeira</h3>
+                        <p class="text-sm text-gray-400 mb-4">Ajuste sua renda mensal e poupança se necessário:</p>
                         
                         <div class="w-full">
-                            <label class="label-text">Monthly Income ($)</label>
-                            <input type="number" id="input-income" class="input-field" value="${gameState.income}">
+                            <label class="label-text">Renda Mensal (R$)</label>
+                            <input type="number" id="input-income" class="input-field" value="${gameState.income.toFixed(2)}">
                             
-                            <label class="label-text mt-3">Total Savings ($)</label>
+                            <label class="label-text mt-3">Poupança Total (R$)</label>
                             <input type="number" id="input-savings" class="input-field" value="${gameState.savings}">
                         </div>
 
-                        <button onclick="handleSpaceClick('1-2')" class="btn-primary mt-4">Save & Next</button>
+                        <button onclick="handleSpaceClick('1-2')" class="btn-primary mt-4">Salvar e Próximo</button>
                     `;
                     break;
-                case '1-2': // Debts (EDITABLE)
+                case '1-2': // Dívidas (EDITÁVEL)
                     const debtTotal = Object.values(gameState.currentDebts).reduce((a,b)=>a+b,0);
                     html = `
-                        <h3 class="text-xl font-bold mb-4">Debt Management</h3>
-                         <p class="text-sm text-gray-400 mb-4">Edit your monthly debt payments:</p>
+                        <h3 class="text-xl font-bold mb-4">Gestão de Dívidas</h3>
+                           <p class="text-sm text-gray-400 mb-4">Edite seus pagamentos mensais de dívidas:</p>
                         
                         <div class="space-y-2 w-full mb-4">
                             ${Object.entries(gameState.currentDebts).map(([k, v]) => `
@@ -380,62 +386,65 @@
                                 </div>
                             `).join('')}
                         </div>
-                         <div class="text-right text-sm text-accent font-bold mb-4">Total: ${formatCurrency(debtTotal)}/mo</div>
-                        <button onclick="handleSpaceClick('1-3')" class="btn-primary">Confirm Debts</button>
+                           <div class="text-right text-sm text-accent font-bold mb-4">Total: ${formatCurrency(debtTotal)}/mês</div>
+                        <button onclick="handleSpaceClick('1-3')" class="btn-primary">Confirmar Dívidas</button>
                     `;
                     break;
-                case '1-3': // Loan Type
+                case '1-3': // Tipo de Empréstimo (Entrada)
                     html = `
-                        <h3 class="text-xl font-bold mb-4">Down Payment Strategy</h3>
+                        <h3 class="text-xl font-bold mb-4">Estratégia de Entrada</h3>
                         <div class="grid gap-3 w-full mb-4">
-                            <button onclick="setDP(0.035)" class="p-3 border rounded hover:bg-gray-700 ${gameState.downPaymentPct===0.035?'bg-blue-900 border-blue-500':''}">3.5% FHA</button>
-                            <button onclick="setDP(0.20)" class="p-3 border rounded hover:bg-gray-700 ${gameState.downPaymentPct===0.20?'bg-blue-900 border-blue-500':''}">20% Conventional</button>
+                            <button onclick="setDP(0.035)" class="p-3 border rounded hover:bg-gray-700 ${gameState.downPaymentPct===0.035?'bg-blue-900 border-blue-500':''}">3.5% (Mínimo)</button>
+                            <button onclick="setDP(0.20)" class="p-3 border rounded hover:bg-gray-700 ${gameState.downPaymentPct===0.20?'bg-blue-900 border-blue-500':''}">20% (Sem PMI)</button>
                         </div>
-                        <button onclick="advanceStage()" class="btn-primary">Confirm Strategy</button>
+                        <button onclick="advanceStage()" class="btn-primary">Confirmar Estratégia</button>
                     `;
                     break;
-                case '1-4': // Pre-Approval
+                case '1-4': // Pré-Aprovação
                     const market = MARKET_SCENARIOS[gameState.market];
                     const debtSum = Object.values(gameState.currentDebts).reduce((a,b)=>a+b,0);
-                    const maxMonthly = (gameState.income * MAX_DTI) - debtSum;
+                    // Renda Mensal * DTI Máximo - Dívidas Mensais
+                    const maxMonthly = (gameState.income * MAX_DTI) - debtSum; 
                     const estRate = market.interestRate / 12;
-                    const terms = 360;
-                    const maxLoan = maxMonthly * ((1 - Math.pow(1 + estRate, -terms)) / estRate);
-                    const maxPrice = roundToNearest(maxLoan / (1-gameState.downPaymentPct), 5000);
+                    const terms = 360; // 30 anos * 12 meses
+                    // Cálculo do valor máximo do empréstimo (Principal)
+                    const maxLoan = maxMonthly * ((1 - Math.pow(1 + estRate, -terms)) / estRate); 
+                    // Cálculo do Preço Máximo da Casa (Empréstimo / Porcentagem financiada)
+                    const maxPrice = roundToNearest(maxLoan / (1-gameState.downPaymentPct), 5000); 
                     
                     if(gameState.maxOfferPrice === 0) saveGameState({ maxOfferPrice: maxPrice });
 
                     html = `
                         <div class="bg-white text-black p-6 rounded shadow-xl w-full max-w-sm">
-                            <h2 class="text-2xl font-bold text-primary mb-2">PRE-APPROVED</h2>
-                            <p class="text-gray-600 text-sm">You are authorized to purchase up to:</p>
+                            <h2 class="text-2xl font-bold text-primary mb-2">PRÉ-APROVADO</h2>
+                            <p class="text-gray-600 text-sm">Você está autorizado a comprar por até:</p>
                             <p class="text-4xl font-black my-4">${formatCurrency(maxPrice)}</p>
-                            <div class="text-xs text-gray-500 border-t pt-2 font-bold">Lender</div>
+                            <div class="text-xs text-gray-500 border-t pt-2 font-bold">Baseado em sua Renda e Dívidas</div>
                         </div>
-                        <button onclick="advanceStage()" class="btn-primary mt-6">Start Shopping</button>
+                        <button onclick="advanceStage()" class="btn-primary mt-6">Começar a Buscar</button>
                     `;
                     break;
-                case '2-1': // Search (WITH IMAGES)
+                case '2-1': // Busca (COM IMAGENS)
                     if(currentListings.length === 0) {
                         const base = gameState.maxOfferPrice;
-                        // Using realistic house images
+                        // Usando imagens realistas de casas
                         currentListings = [
-                            {id:1, addr:"123 Fixer Upper", price: base*0.8, type:"bad", img: "https://images.unsplash.com/photo-1568605114967-8130f3a36994?w=500&q=80"},
-                            {id:2, addr:"456 Standard St", price: base*0.95, type:"ok", img: "https://images.unsplash.com/photo-1570129477492-45c003edd2be?w=500&q=80"},
-                            {id:3, addr:"789 Dream Blvd", price: base*1.05, type:"good", img: "https://images.unsplash.com/photo-1600596542815-e32cbbbf4a63?w=500&q=80"}
+                            {id:1, addr:"Rua dos Reformadores, 123", price: base*0.8, type:"bad", img: "https://images.unsplash.com/photo-1568605114967-8130f3a36994?w=500&q=80"},
+                            {id:2, addr:"Avenida Padrão, 456", price: base*0.95, type:"ok", img: "https://images.unsplash.com/photo-1570129477492-45c003edd2be?w=500&q=80"},
+                            {id:3, addr:"Alameda dos Sonhos, 789", price: base*1.05, type:"good", img: "https://images.unsplash.com/photo-1600596542815-e32cbbbf4a63?w=500&q=80"}
                         ];
                     }
                     html = `
-                        <h3 class="text-xl font-bold mb-4">Market Listings</h3>
+                        <h3 class="text-xl font-bold mb-4">Imóveis Disponíveis</h3>
                         <div class="space-y-4 w-full max-h-[400px] overflow-y-auto pr-2">
                             ${currentListings.map(l => `
                                 <div onclick="selectProp(${l.id})" class="bg-gray-800 rounded-xl overflow-hidden cursor-pointer hover:ring-2 ring-accent transition shadow-lg group">
                                     <div class="relative h-32 overflow-hidden">
-                                        <img src="${l.img}" class="w-full h-full object-cover group-hover:scale-110 transition duration-500">
+                                        <img src="${l.img}" class="w-full h-full object-cover group-hover:scale-110 transition duration-500" alt="Imagem da propriedade">
                                         <div class="absolute bottom-0 left-0 bg-black bg-opacity-60 px-2 py-1 text-xs text-white font-bold">${l.addr}</div>
                                     </div>
                                     <div class="p-3 flex justify-between items-center">
-                                        <span class="text-sm text-gray-300">3bd | 2ba</span>
+                                        <span class="text-sm text-gray-300">3 Quartos | 2 Banheiros</span>
                                         <span class="font-bold text-accent text-lg">${formatCurrency(l.price)}</span>
                                     </div>
                                 </div>
@@ -443,96 +452,100 @@
                         </div>
                     `;
                     break;
-                case '2-2': // Comps
+                case '2-2': // Comparar
+                    if (!gameState.property) return 'Selecione um imóvel primeiro.';
                     html = `
-                        <h3 class="text-xl font-bold mb-2">Comparable Sales</h3>
-                        <p class="mb-4 text-sm text-gray-400">Analyzing neighborhood value...</p>
+                        <h3 class="text-xl font-bold mb-2">Análise de Vendas Comparáveis</h3>
+                        <p class="mb-4 text-sm text-gray-400">Analisando o valor do bairro...</p>
                         <div class="bg-blue-900 bg-opacity-30 border border-blue-500 p-4 rounded w-full mb-4">
-                            <p>Recent Sale 1: ${formatCurrency(gameState.property.price * 0.98)}</p>
-                            <p>Recent Sale 2: ${formatCurrency(gameState.property.price * 1.02)}</p>
+                            <p>Venda Recente 1: ${formatCurrency(gameState.property.price * 0.98)}</p>
+                            <p>Venda Recente 2: ${formatCurrency(gameState.property.price * 1.02)}</p>
                         </div>
-                        <p class="text-sm">The list price seems fair.</p>
-                        <button onclick="advanceStage()" class="btn-primary mt-4">Proceed</button>
+                        <p class="text-sm">O preço de tabela parece justo.</p>
+                        <button onclick="advanceStage()" class="btn-primary mt-4">Continuar</button>
                     `;
                     break;
-                case '2-3': // Select (WITH IMAGE)
+                case '2-3': // Selecionar (COM IMAGEM)
+                    if (!gameState.property) return 'Selecione um imóvel primeiro.';
                     html = `
-                        <h3 class="text-xl font-bold mb-2">Property Selected</h3>
+                        <h3 class="text-xl font-bold mb-2">Imóvel Selecionado</h3>
                         <div class="w-full h-48 rounded-xl overflow-hidden mb-4 shadow-2xl border-2 border-accent">
-                            <img src="${gameState.property.img}" class="w-full h-full object-cover">
+                            <img src="${gameState.property.img}" class="w-full h-full object-cover" alt="Imóvel Selecionado">
                         </div>
                         <p class="text-xl font-bold">${gameState.property.addr}</p>
                         <p class="text-accent text-2xl font-black mb-6">${formatCurrency(gameState.property.price)}</p>
-                        <button onclick="advanceStage()" class="btn-primary">Draft Offer</button>
+                        <button onclick="advanceStage()" class="btn-primary">Elaborar Proposta</button>
                     `;
                     break;
-                case '2-4': // Offer
+                case '2-4': // Oferta
+                    if (!gameState.property) return 'Selecione um imóvel primeiro.';
                     html = `
-                        <h3 class="text-xl font-bold mb-4">Submit Offer</h3>
-                        <p class="mb-2">List Price: ${formatCurrency(gameState.property.price)}</p>
+                        <h3 class="text-xl font-bold mb-4">Enviar Proposta</h3>
+                        <p class="mb-2">Preço de Tabela: ${formatCurrency(gameState.property.price)}</p>
                         <input type="number" id="offerVal" value="${gameState.property.price}" class="input-field text-xl font-bold" />
-                        <button onclick="makeOffer()" class="btn-primary w-full">Send Offer</button>
+                        <button onclick="makeOffer()" class="btn-primary w-full">Enviar Proposta</button>
                     `;
                     break;
-                case '3-1': // Inspection
+                case '3-1': // Inspeção
                     html = `
-                        <h3 class="text-xl font-bold mb-4 text-yellow-400">Inspection Report</h3>
-                        <div class="text-left bg-gray-800 p-4 rounded mb-4 text-sm">
+                        <h3 class="text-xl font-bold mb-4 text-yellow-400">Relatório de Inspeção</h3>
+                        <div class="text-left bg-gray-800 p-4 rounded w-full mb-4 text-sm">
                             <ul class="list-disc pl-4 space-y-2">
-                                <li>Roof shingles worn (Minor)</li>
-                                <li>Water heater old (Medium)</li>
+                                <li>Telhas do telhado gastas (Pequeno)</li>
+                                <li>Aquecedor de água antigo (Médio)</li>
                             </ul>
                         </div>
-                        <div class="flex gap-2">
-                            <button onclick="advanceStage()" class="bg-green-600 text-white p-2 rounded flex-1 font-bold">Accept As-Is</button>
-                            <button onclick="showModal('Negotiation', 'You asked for $2k credit. Seller accepted!'); advanceStage();" class="bg-blue-600 text-white p-2 rounded flex-1 font-bold">Negotiate Credit</button>
+                        <div class="flex gap-2 w-full">
+                            <button onclick="advanceStage()" class="bg-green-600 text-white p-2 rounded flex-1 font-bold">Aceitar Como Está</button>
+                            <button onclick="showModal('Negociação', 'Você solicitou R$ 2.000 de crédito. O vendedor aceitou!'); advanceStage();" class="bg-blue-600 text-white p-2 rounded flex-1 font-bold">Negociar Crédito</button>
                         </div>
                     `;
                     break;
-                case '3-2': // Appraisal
+                case '3-2': // Avaliação
                     html = `
-                        <h3 class="text-xl font-bold mb-4">Appraisal</h3>
+                        <h3 class="text-xl font-bold mb-4">Avaliação Bancária</h3>
                         <div class="w-32 h-32 rounded-full border-4 border-green-500 flex items-center justify-center mx-auto mb-4 bg-gray-800">
-                            <span class="font-bold text-green-400">PASSED</span>
+                            <span class="font-bold text-green-400">APROVADO</span>
                         </div>
-                        <p>Value matches offer price.</p>
-                        <button onclick="advanceStage()" class="btn-primary mt-4">Next</button>
+                        <p>O valor de avaliação corresponde ao preço da oferta.</p>
+                        <button onclick="advanceStage()" class="btn-primary mt-4">Próximo</button>
                     `;
                     break;
-                case '3-3': // Closing Disclosure
+                case '3-3': // Fechamento
                     html = `
-                        <h3 class="text-xl font-bold mb-2">Final Numbers</h3>
+                        <h3 class="text-xl font-bold mb-2">Números Finais</h3>
                         <div class="bg-white text-black p-4 rounded w-full mb-4 text-sm">
-                            <div class="flex justify-between border-b py-1"><span>Price</span><span>${formatCurrency(gameState.offer.price)}</span></div>
-                            <div class="flex justify-between border-b py-1"><span>Rate</span><span>${formatPercent(MARKET_SCENARIOS[gameState.market].interestRate)}</span></div>
-                            <div class="flex justify-between font-bold py-2"><span>Cash to Close</span><span>${formatCurrency(gameState.offer.price * gameState.downPaymentPct + 8000)}</span></div>
+                            <div class="flex justify-between border-b py-1"><span>Preço</span><span>${formatCurrency(gameState.offer.price)}</span></div>
+                            <div class="flex justify-between border-b py-1"><span>Taxa Juros</span><span>${formatPercent(MARKET_SCENARIOS[gameState.market].interestRate)}</span></div>
+                            <div class="flex justify-between font-bold py-2"><span>Dinheiro para Fechamento</span><span>${formatCurrency(gameState.offer.price * gameState.downPaymentPct + 8000)}</span></div>
                         </div>
-                        <button onclick="advanceStage()" class="btn-primary">Sign Documents</button>
+                        <button onclick="advanceStage()" class="btn-primary">Assinar Documentos</button>
                     `;
                     break;
-                case '3-4': // Keys
+                case '3-4': // Chaves
+                    if (!gameState.property) return 'Erro.';
                     html = `
                         <div class="animate-bounce text-6xl mb-4">🔑</div>
-                        <h2 class="text-3xl font-black text-white mb-2">CONGRATULATIONS!</h2>
+                        <h2 class="text-3xl font-black text-white mb-2">PARABÉNS!</h2>
                         <div class="w-full h-40 rounded-lg overflow-hidden mb-4 opacity-80">
-                            <img src="${gameState.property.img}" class="w-full h-full object-cover">
+                            <img src="${gameState.property.img}" class="w-full h-full object-cover" alt="Casa comprada">
                         </div>
-                        <p class="mb-6">You are now the owner of ${gameState.property.addr}!</p>
-                        <button onclick="resetGame()" class="bg-white text-black px-6 py-2 rounded-full font-bold hover:bg-gray-200">Play Again</button>
+                        <p class="mb-6">Você é o novo proprietário de ${gameState.property.addr}!</p>
+                        <button onclick="resetGame()" class="bg-white text-black px-6 py-2 rounded-full font-bold hover:bg-gray-200">Jogar Novamente</button>
                     `;
                     break;
                 default:
-                    html = 'Error';
+                    html = 'Erro: Conteúdo não encontrado';
             }
             content.innerHTML = html;
         };
 
-        // --- WINDOW HELPERS ---
+        // --- WINDOW HELPERS (Tradução e pequenos ajustes de valor) ---
         window.selectMarket = (key) => {
             const m = MARKET_SCENARIOS[key];
             saveGameState({ 
                 market: key, 
-                income: m.startIncome/12, 
+                income: m.startIncome, // Renda já é mensal no BR
                 savings: m.startSavings, 
                 currentDebts: m.startDebts 
             });
