@@ -39,9 +39,6 @@
         .smoke-effect {
             /* Sombra suave branca para simular "fumaça" */
             box-shadow: 0 0 15px 5px rgba(255, 255, 255, 0.3), 0 0 30px 10px rgba(255, 255, 255, 0.15) inset;
-            /* Filtro de blur para efeito de fumaça mais "realista" - pode ser ajustado */
-            /* backdrop-filter: blur(2px) grayscale(0.5); */ 
-            /* Se quiser um blur mais forte atrás, descomente o backdrop-filter */
         }
         
         /* --- GAME BOARD GRID --- */
@@ -145,6 +142,7 @@
     <header class="bg-gray-900 shadow-lg py-4 border-b border-gray-800">
         <div class="max-w-7xl mx-auto px-4 text-center">
             <h1 class="text-2xl md:text-3xl font-black text-white flex items-center justify-center gap-2">
+                
                 <img src="./foto-perfil.jpg" onerror="this.onerror=null; this.src='https://via.placeholder.com/32'" alt="Foto de Perfil" class="h-8 w-8 rounded-full object-cover border-2 border-accent mr-2 smoke-effect">
                 <span>Cristiano Jarbas <span class="text-primary">Tycoon</span></span>
             </h1>
@@ -517,4 +515,88 @@
                     html = `
                         <h3 class="text-xl font-bold mb-4">Avaliação Bancária</h3>
                         <div class="w-32 h-32 rounded-full border-4 border-green-500 flex items-center justify-center mx-auto mb-4 bg-gray-800">
-                            <span class="font-bold text-green-4
+                            <span class="font-bold text-green-400">APROVADO</span>
+                        </div>
+                        <p>O valor de avaliação corresponde ao preço da oferta.</p>
+                        <button onclick="advanceStage()" class="btn-primary mt-4">Próximo</button>
+                    `;
+                    break;
+                case '3-3': // Fechamento
+                    html = `
+                        <h3 class="text-xl font-bold mb-2">Números Finais</h3>
+                        <div class="bg-white text-black p-4 rounded w-full mb-4 text-sm">
+                            <div class="flex justify-between border-b py-1"><span>Preço</span><span>${formatCurrency(gameState.offer.price)}</span></div>
+                            <div class="flex justify-between border-b py-1"><span>Taxa Juros</span><span>${formatPercent(MARKET_SCENARIOS[gameState.market].interestRate)}</span></div>
+                            <div class="flex justify-between font-bold py-2"><span>Dinheiro para Fechamento</span><span>${formatCurrency(gameState.offer.price * gameState.downPaymentPct + 8000)}</span></div>
+                        </div>
+                        <button onclick="advanceStage()" class="btn-primary">Assinar Documentos</button>
+                    `;
+                    break;
+                case '3-4': // Chaves
+                    if (!gameState.property) return 'Erro.';
+                    html = `
+                        <div class="animate-bounce text-6xl mb-4">🔑</div>
+                        <h2 class="text-3xl font-black text-white mb-2">PARABÉNS!</h2>
+                        <div class="w-full h-40 rounded-lg overflow-hidden mb-4 opacity-80">
+                            <img src="${gameState.property.img}" class="w-full h-full object-cover" alt="Casa comprada">
+                        </div>
+                        <p class="mb-6">Você é o novo proprietário de ${gameState.property.addr}!</p>
+                        <button onclick="resetGame()" class="bg-white text-black px-6 py-2 rounded-full font-bold hover:bg-gray-200">Jogar Novamente</button>
+                    `;
+                    break;
+                default:
+                    html = 'Erro: Conteúdo não encontrado';
+            }
+            content.innerHTML = html;
+        };
+
+        // --- WINDOW HELPERS ---
+        window.selectMarket = (key) => {
+            const m = MARKET_SCENARIOS[key];
+            saveGameState({ 
+                market: key, 
+                income: m.startIncome, 
+                savings: m.startSavings, 
+                currentDebts: m.startDebts 
+            });
+            advanceStage();
+        };
+
+        // FUNÇÃO MODIFICADA: Salva a escolha e re-renderiza para aplicar o destaque
+        window.setDP = (pct) => {
+            saveGameState({ downPaymentPct: pct });
+            renderCenterContent(gameState.stage);
+        };
+
+        window.selectProp = (id) => {
+            const prop = currentListings.find(l=>l.id===id);
+            saveGameState({ property: prop });
+            advanceStage();
+        };
+
+        window.makeOffer = () => {
+            const val = document.getElementById('offerVal').value;
+            saveGameState({ offer: { price: val } });
+            advanceStage();
+        };
+
+        // Modal Logic
+        const modal = document.getElementById('modal');
+        window.showModal = (title, body) => {
+            document.getElementById('modal-title').innerText = title;
+            document.getElementById('modal-body').innerText = body;
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        };
+        window.hideModal = () => {
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        };
+
+        // Init
+        renderCenterContent('start');
+        updateUI();
+
+    </script>
+</body>
+</html>
