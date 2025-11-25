@@ -26,11 +26,9 @@
         }
         .btn-primary:hover { opacity: 0.9; }
 
-        /* MODIFICAÇÃO CRÍTICA: Cor do input para PRETO */
+        /* CRÍTICO: Cor do input para PRETO */
         .input-field {
-            /* Definido background e forçando text-black */
             @apply w-full p-2 bg-white text-black border border-gray-600 rounded mb-2 focus:border-accent focus:outline-none transition;
-            /* Se for necessário um reforço maior (pode ser problema de herança de cor do navegador) */
             color: black !important; 
         }
         .label-text {
@@ -306,7 +304,6 @@
             if (id === getNextStage(gameState.stage)) {
                 // Captura inputs da Etapa 1-1 (Renda)
                 if (gameState.stage === '1-1') {
-                    // CRÍTICO: Capturar o valor do input (string) e converter para número
                     const newIncome = parseFloat(document.getElementById('input-income').value);
                     const newSavings = parseFloat(document.getElementById('input-savings').value);
                     saveGameState({ income: newIncome || 0, savings: newSavings || 0 }); 
@@ -315,7 +312,6 @@
                 if (gameState.stage === '1-2') {
                     let newDebts = {};
                     document.querySelectorAll('.debt-input').forEach(input => {
-                        // CRÍTICO: Capturar o valor do input (string) e converter para número
                         newDebts[input.name] = parseFloat(input.value) || 0;
                     });
                     saveGameState({ currentDebts: newDebts });
@@ -400,8 +396,12 @@
                     html = `
                         <h3 class="text-xl font-bold mb-4">Estratégia de Entrada</h3>
                         <div class="grid gap-3 w-full mb-4">
-                            <button onclick="setDP(0.035)" class="p-3 border rounded hover:bg-gray-700 ${gameState.downPaymentPct===0.035?'bg-blue-900 border-blue-500':''}">3.5% (Mínimo)</button>
-                            <button onclick="setDP(0.20)" class="p-3 border rounded hover:bg-gray-700 ${gameState.downPaymentPct===0.20?'bg-blue-900 border-blue-500':''}">20% (Sem PMI)</button>
+                            <button onclick="setDP(0.035)" class="p-3 border rounded hover:bg-gray-700 ${gameState.downPaymentPct===0.035?'bg-blue-900 border-blue-500 ring-2 ring-blue-300':''}">
+                                3.5% (Mínimo) - Requer PMI
+                            </button>
+                            <button onclick="setDP(0.20)" class="p-3 border rounded hover:bg-gray-700 ${gameState.downPaymentPct===0.20?'bg-blue-900 border-blue-500 ring-2 ring-blue-300':''}">
+                                20% (Padrão) - Sem PMI
+                            </button>
                         </div>
                         <button onclick="advanceStage()" class="btn-primary">Confirmar Estratégia</button>
                     `;
@@ -555,8 +555,10 @@
             advanceStage();
         };
 
+        // FUNÇÃO MODIFICADA: Salva a escolha e re-renderiza para aplicar o destaque
         window.setDP = (pct) => {
             saveGameState({ downPaymentPct: pct });
+            renderCenterContent(gameState.stage);
         };
 
         window.selectProp = (id) => {
