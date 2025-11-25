@@ -1,139 +1,565 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Cristiano Jarbas Real Estate Tycoon (Game Board)</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" rel="stylesheet">
-  <script src="https://unpkg.com/phosphor-icons"></script>
-  <style>
-    :root {
-      --color-primary: #1E40FF;
-      --color-secondary: #C8102E;
-      --color-accent: #FFC300;
-    }
-    body {
-      font-family: 'Inter', sans-serif;
-      background-color: #0d1117;
-      color: #f3f4f6;
-    }
-    .bg-primary { background-color: var(--color-primary); }
-    .text-primary { color: var(--color-primary); }
-    .bg-secondary { background-color: var(--color-secondary); }
-    .text-secondary { color: var(--color-secondary); }
-    .bg-accent { background-color: var(--color-accent); }
-    .text-accent { color: var(--color-accent); }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cristiano Jarbas Real Estate Tycoon</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/phosphor-icons"></script>
+    <style>
+        :root {
+            --color-primary: #1E40FF; /* Blue */
+            --color-secondary: #C8102E; /* Red */
+            --color-accent: #FFC300; /* Gold */
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0d1117;
+            color: #f3f4f6;
+        }
+        
+        /* Utility Classes */
+        .btn-primary {
+            @apply px-6 py-3 rounded-xl font-bold transition duration-200 shadow-lg text-white;
+            background-color: var(--color-secondary);
+        }
+        .btn-primary:hover { opacity: 0.9; }
 
-    /* Board and spaces styling */
-    .game-board {
-      display: grid;
-      grid-template-columns: repeat(5, 1fr);
-      grid-template-rows: repeat(5, 1fr);
-      gap: 10px;
-      max-width: 800px;
-      aspect-ratio: 1 / 1;
-      margin: 20px auto;
-      border: 10px solid var(--color-secondary);
-      border-radius: 20px;
-      background-color: #0d1117;
-    }
-    .board-space {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      padding: 8px;
-      border-radius: 12px;
-      cursor: pointer;
-      transition: transform 0.1s ease, box-shadow 0.2s ease;
-      text-align: center;
-      font-weight: 600;
-      color: white;
-      position: relative;
-      min-height: 100px;
-    }
-    .board-space.disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
-    }
-    .board-space:not(.disabled):hover {
-      transform: scale(1.05);
-      box-shadow: 0 0 15px rgba(255,255,255,0.5);
-    }
-    .zone-1 { background-color: var(--color-primary); }
-    .zone-2 { background-color: var(--color-secondary); }
-    .zone-3 { background-color: #334155; }
-    .space-start { grid-area: 5 / 5 / 6 / 6; background-color: #10B981; }
+        .btn-llm {
+            @apply px-4 py-2 rounded-xl font-semibold transition duration-200 shadow-md text-sm;
+            background-color: var(--color-accent);
+            color: var(--color-primary);
+        }
+        .btn-llm:hover { @apply bg-opacity-90 shadow-lg; }
 
-    /* grid positions for other spaces should be defined here — replicate your original */
-    .center-display {
-      grid-area: 2 / 2 / 5 / 5;
-      background-color: #2c2f33;
-      border-radius:12px;
-      padding:20px;
-      overflow-y:auto;
-    }
-    .center-content {
-      height:100%;
-      display:flex;
-      flex-direction:column;
-      justify-content:center;
-      align-items:center;
-    }
-    .stage-active {
-      box-shadow: 0 0 15px 5px var(--color-accent);
-      border:3px solid var(--color-accent);
-    }
-  </style>
+        /* --- GAME BOARD GRID --- */
+        .game-board {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            grid-template-rows: repeat(5, 1fr);
+            gap: 10px;
+            max-width: 800px;
+            aspect-ratio: 1 / 1;
+            margin: 20px auto;
+            border: 10px solid var(--color-secondary);
+            border-radius: 20px;
+            background-color: #0d1117;
+        }
+
+        .board-space {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 4px;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: transform 0.1s ease, box-shadow 0.2s ease;
+            text-align: center;
+            font-weight: 600;
+            color: white;
+            font-size: 0.8rem;
+            position: relative;
+        }
+
+        /* Mobile adjustments */
+        @media (max-width: 768px) {
+            .board-space { font-size: 0.6rem; }
+            .board-space i { font-size: 1.2rem; }
+        }
+
+        .board-space.disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+            filter: grayscale(100%);
+        }
+        .board-space:not(.disabled):hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 15px rgba(255, 255, 255, 0.3);
+            z-index: 10;
+        }
+
+        /* Active Stage Highlight */
+        .stage-active {
+            box-shadow: 0 0 20px var(--color-accent);
+            border: 2px solid var(--color-accent);
+            z-index: 20;
+            transform: scale(1.05);
+        }
+
+        /* Colors by Zone */
+        .zone-1 { background-color: var(--color-primary); } /* Finance */
+        .zone-2 { background-color: var(--color-secondary); } /* Hunting */
+        .zone-3 { background-color: #475569; } /* Closing */
+        .space-start { background-color: #10B981; } /* Start */
+
+        /* Grid Positioning (Perimeter Walk) */
+        /* Bottom Row (Right to Left) */
+        .space-start { grid-area: 5 / 5 / 6 / 6; }
+        .space-1-1   { grid-area: 5 / 4 / 6 / 5; }
+        .space-1-2   { grid-area: 5 / 3 / 6 / 4; }
+        .space-1-3   { grid-area: 5 / 2 / 6 / 3; }
+        .space-1-4   { grid-area: 5 / 1 / 6 / 2; }
+
+        /* Left Column (Bottom to Top) */
+        .space-2-1   { grid-area: 4 / 1 / 5 / 2; }
+        .space-2-2   { grid-area: 3 / 1 / 4 / 2; }
+        .space-2-3   { grid-area: 2 / 1 / 3 / 2; }
+        .space-2-4   { grid-area: 1 / 1 / 2 / 2; }
+
+        /* Top Row (Left to Right) */
+        .space-3-1   { grid-area: 1 / 2 / 2 / 3; }
+        .space-3-2   { grid-area: 1 / 3 / 2 / 4; }
+        .space-3-3   { grid-area: 1 / 4 / 2 / 5; }
+        .space-3-4   { grid-area: 1 / 5 / 2 / 6; }
+
+        /* Center Display */
+        .center-display {
+            grid-area: 2 / 2 / 5 / 5;
+            background-color: #1f2937;
+            border-radius: 12px;
+            padding: 20px;
+            overflow-y: auto;
+            border: 1px solid #374151;
+        }
+
+        .center-content {
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+        }
+    </style>
+    
+    <script>
+        window.firebase = {
+            getAuth: () => ({}),
+            setDoc: () => {},
+            onSnapshot: () => {},
+        };
+    </script>
 </head>
 <body class="min-h-screen flex flex-col">
-  <header class="bg-gray-800 shadow-lg py-4">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between">
-      <div class="flex items-center">
-        <img src="path/to/your-logo.png" alt="Cristiano Jarbas Inc Logo" class="h-12 w-auto mr-4">
-        <h1 class="text-3xl font-black text-secondary flex items-center">
-          <i class="ph ph-house-line mr-2 text-primary"></i>
-          Cristiano Jarbas Real Estate Tycoon
-        </h1>
-      </div>
-      <div>
-        <img src="path/to/your-photo.jpg" alt="Cristiano Jarbas" class="h-12 w-12 rounded-full border-2 border-accent">
-      </div>
-    </div>
-  </header>
 
-  <main class="flex-grow p-4">
-    <div id="game-status" class="text-center mb-6 text-lg font-semibold text-gray-300">
-      Current Market: <span id="market-display" class="text-accent">...</span> |
-      Max Budget: <span id="budget-display" class="text-accent">...</span>
-    </div>
-
-    <div class="game-board" id="game-board">
-      <div id="space-start" class="board-space space-start" onclick="if(!this.classList.contains('disabled')) handleSpaceClick('start')">
-        <i class="ph ph-flag-checkered text-4xl mb-1"></i>
-        START / Choose Market
-      </div>
-      <div id="space-1-1" class="board-space zone-1 disabled" onclick="if(!this.classList.contains('disabled')) handleSpaceClick('1-1')">
-        <i class="ph ph-money text-3xl mb-1"></i>
-        Income & Debts
-      </div>
-      <!-- … continue your other spaces with correct ids, classes, onclick handlers … -->
-      <div class="center-display">
-        <div id="center-content" class="center-content text-center">
-          <h2 class="text-3xl font-black text-secondary mb-4">
-            Welcome to Cristiano Jarbas Real Estate Tycoon!
-          </h2>
-          <p class="text-gray-300">
-            Click the <strong>START</strong> space to begin your journey to homeownership.
-          </p>
+    <header class="bg-gray-900 shadow-lg py-4 border-b border-gray-800">
+        <div class="max-w-7xl mx-auto px-4 text-center">
+            <h1 class="text-2xl md:text-3xl font-black text-white flex items-center justify-center gap-2">
+                <i class="ph ph-house-line text-secondary"></i> 
+                <span>Cristiano Jarbas <span class="text-primary">Tycoon</span></span>
+            </h1>
         </div>
-      </div>
+    </header>
+
+    <main class="flex-grow p-4">
+        <div id="game-status" class="text-center mb-4 text-sm md:text-lg font-semibold text-gray-400">
+            Market: <span id="market-display" class="text-white">...</span> | Budget: <span id="budget-display" class="text-white">...</span>
+        </div>
+
+        <div class="game-board">
+            <div id="space-start" class="board-space space-start" onclick="handleSpaceClick('start')">
+                <i class="ph ph-flag-checkered text-3xl mb-1"></i>
+                START
+            </div>
+
+            <div id="space-1-1" class="board-space zone-1 disabled" onclick="handleSpaceClick('1-1')">
+                <i class="ph ph-money text-2xl mb-1"></i> Income
+            </div>
+            <div id="space-1-2" class="board-space zone-1 disabled" onclick="handleSpaceClick('1-2')">
+                <i class="ph ph-piggy-bank text-2xl mb-1"></i> Savings
+            </div>
+            <div id="space-1-3" class="board-space zone-1 disabled" onclick="handleSpaceClick('1-3')">
+                <i class="ph ph-percent text-2xl mb-1"></i> Loan Type
+            </div>
+            <div id="space-1-4" class="board-space zone-1 disabled" onclick="handleSpaceClick('1-4')">
+                <i class="ph ph-file-text text-2xl mb-1"></i> Pre-Approval
+            </div>
+
+            <div id="space-2-1" class="board-space zone-2 disabled" onclick="handleSpaceClick('2-1')">
+                <i class="ph ph-magnifying-glass text-2xl mb-1"></i> Search
+            </div>
+            <div id="space-2-2" class="board-space zone-2 disabled" onclick="handleSpaceClick('2-2')">
+                <i class="ph ph-chart-bar text-2xl mb-1"></i> Comps
+            </div>
+            <div id="space-2-3" class="board-space zone-2 disabled" onclick="handleSpaceClick('2-3')">
+                <i class="ph ph-house-line text-2xl mb-1"></i> Select
+            </div>
+            <div id="space-2-4" class="board-space zone-2 disabled" onclick="handleSpaceClick('2-4')">
+                <i class="ph ph-pencil-line text-2xl mb-1"></i> Offer
+            </div>
+
+            <div id="space-3-1" class="board-space zone-3 disabled" onclick="handleSpaceClick('3-1')">
+                <i class="ph ph-toolbox text-2xl mb-1"></i> Inspect
+            </div>
+            <div id="space-3-2" class="board-space zone-3 disabled" onclick="handleSpaceClick('3-2')">
+                <i class="ph ph-bank text-2xl mb-1"></i> Appraisal
+            </div>
+            <div id="space-3-3" class="board-space zone-3 disabled" onclick="handleSpaceClick('3-3')">
+                <i class="ph ph-file-pdf text-2xl mb-1"></i> Closing Disclosure
+            </div>
+            <div id="space-3-4" class="board-space zone-3 disabled" onclick="handleSpaceClick('3-4')">
+                <i class="ph ph-key text-2xl mb-1"></i> Keys!
+            </div>
+
+            <div class="center-display">
+                <div id="center-content" class="center-content">
+                    </div>
+            </div>
+        </div>
+    </main>
+
+    <div id="modal" class="fixed inset-0 bg-black bg-opacity-80 hidden items-center justify-center p-4 z-50">
+        <div class="bg-white text-gray-900 w-full max-w-lg rounded-2xl shadow-2xl overflow-hidden">
+            <div class="bg-gray-100 px-6 py-4 border-b border-gray-200 flex justify-between items-center">
+                <h3 id="modal-title" class="text-lg font-bold flex items-center"></h3>
+                <button onclick="hideModal()" class="text-gray-500 hover:text-red-500">
+                    <i class="ph ph-x text-xl"></i>
+                </button>
+            </div>
+            <div id="modal-body" class="p-6"></div>
+            <div class="px-6 py-4 bg-gray-50 flex justify-end">
+                <button onclick="hideModal()" class="btn-primary">OK</button>
+            </div>
+        </div>
     </div>
-  </main>
 
-  <!-- Modal and logic (as before) -->
-  <!-- ... (keep your JS logic) ... -->
+    <script type="module">
+        // --- CONSTANTS & CONFIG ---
+        const MARKET_SCENARIOS = {
+            easy: {
+                name: "Starter Suburb", priceRange: [250000, 350000], taxRate: 0.0085, interestRate: 0.0625,
+                startSavings: 20000, startIncome: 75000, startDebts: { creditCard: 500, auto: 300, student: 100 }
+            },
+            medium: {
+                name: "Hot Metro", priceRange: [400000, 650000], taxRate: 0.0120, interestRate: 0.0650,
+                startSavings: 45000, startIncome: 120000, startDebts: { creditCard: 1000, auto: 500, student: 250 }
+            },
+            hard: {
+                name: "Coastal Luxury", priceRange: [800000, 1200000], taxRate: 0.0065, interestRate: 0.0675,
+                startSavings: 90000, startIncome: 200000, startDebts: { creditCard: 1500, auto: 700, student: 500 }
+            }
+        };
 
+        const stageOrder = ['start', '1-1', '1-2', '1-3', '1-4', '2-1', '2-2', '2-3', '2-4', '3-1', '3-2', '3-3', '3-4', 'complete'];
+        const PMI_RATE = 0.005;
+        const INSURANCE_COST = 1800;
+        const MAX_DTI = 0.43;
+
+        let gameState = {
+            stage: 'start',
+            market: null,
+            income: 0,
+            savings: 0,
+            currentDebts: {},
+            downPaymentPct: 0.20,
+            maxOfferPrice: 0,
+            property: null,
+            offer: {},
+            inspectionIssues: null,
+            appraisalValue: 0
+        };
+
+        let currentListings = [];
+
+        // --- UTILS ---
+        const formatCurrency = (amt) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(amt);
+        const formatPercent = (val) => (val * 100).toFixed(1) + '%';
+        const roundToNearest = (val, n) => Math.round(val / n) * n;
+
+        // --- CORE FUNCTIONS ---
+        const getNextStage = (current) => {
+            const idx = stageOrder.indexOf(current);
+            return (idx !== -1 && idx < stageOrder.length - 1) ? stageOrder[idx + 1] : 'complete';
+        };
+
+        const saveGameState = (updates) => {
+            gameState = { ...gameState, ...updates };
+            updateUI();
+        };
+
+        const updateUI = () => {
+            // Update Header
+            const mkt = gameState.market ? MARKET_SCENARIOS[gameState.market].name : 'N/A';
+            const budget = gameState.maxOfferPrice > 0 ? formatCurrency(gameState.maxOfferPrice) : 'N/A';
+            document.getElementById('market-display').innerText = mkt;
+            document.getElementById('budget-display').innerText = budget;
+
+            // Update Board
+            document.querySelectorAll('.board-space').forEach(el => {
+                el.classList.remove('stage-active');
+                el.classList.add('disabled');
+            });
+
+            if (gameState.stage === 'start') {
+                document.getElementById('space-start').classList.remove('disabled');
+                document.getElementById('space-start').classList.add('stage-active');
+            } else if (gameState.stage !== 'complete') {
+                const currentId = `space-${gameState.stage}`;
+                const nextStage = getNextStage(gameState.stage);
+                const nextId = `space-${nextStage}`;
+
+                // Highlight current completed step
+                const currEl = document.getElementById(currentId);
+                if(currEl) currEl.classList.remove('disabled');
+
+                // Highlight next playable step
+                const nextEl = document.getElementById(nextId);
+                if(nextEl) {
+                    nextEl.classList.remove('disabled');
+                    nextEl.classList.add('stage-active');
+                }
+            }
+        };
+
+        window.handleSpaceClick = (id) => {
+            // Allow clicking if it's the current stage or the immediate next stage
+            const allowed = [gameState.stage, getNextStage(gameState.stage)];
+            
+            // Simplified logic: If we click the next stage, we advance. 
+            // If we click current stage, we just view it.
+            if (!document.getElementById(`space-${id}`).classList.contains('disabled')) {
+                if (id === getNextStage(gameState.stage)) {
+                    // Logic to ensure we completed previous data happens in render
+                    saveGameState({ stage: id });
+                }
+                renderCenterContent(id);
+            }
+        };
+
+        window.advanceStage = (updates = {}) => {
+            const next = getNextStage(gameState.stage);
+            saveGameState({ stage: next, ...updates });
+            renderCenterContent(next);
+        };
+
+        window.resetGame = () => {
+            location.reload();
+        };
+
+        // --- RENDER FUNCTIONS ---
+        const renderCenterContent = (id) => {
+            const content = document.getElementById('center-content');
+            let html = '';
+
+            switch(id) {
+                case 'start':
+                    html = `
+                        <h2 class="text-3xl font-black text-secondary mb-4">Select Market</h2>
+                        <div class="grid gap-4 w-full">
+                            ${Object.entries(MARKET_SCENARIOS).map(([k, v]) => `
+                                <button onclick="selectMarket('${k}')" class="bg-gray-800 p-4 rounded hover:bg-gray-700 border border-gray-600 text-left">
+                                    <div class="font-bold text-accent text-lg">${v.name}</div>
+                                    <div class="text-sm text-gray-400">Entry: ${formatCurrency(v.priceRange[0])}</div>
+                                </button>
+                            `).join('')}
+                        </div>
+                    `;
+                    break;
+                case '1-1': // Income
+                    html = `
+                        <h3 class="text-xl font-bold mb-4">Financial Audit</h3>
+                        <div class="text-left bg-gray-800 p-4 rounded w-full mb-4">
+                            <p>Income: <span class="float-right font-mono text-green-400">${formatCurrency(gameState.income)}/mo</span></p>
+                            <p>Savings: <span class="float-right font-mono text-green-400">${formatCurrency(gameState.savings)}</span></p>
+                        </div>
+                        <button onclick="advanceStage()" class="btn-primary">Verify & Next</button>
+                    `;
+                    break;
+                case '1-2': // Savings/Debt
+                    const debtTotal = Object.values(gameState.currentDebts).reduce((a,b)=>a+b,0);
+                    html = `
+                        <h3 class="text-xl font-bold mb-4">Debt Management</h3>
+                        <p class="mb-4 text-sm">Monthly Debt: ${formatCurrency(debtTotal)}</p>
+                        <div class="space-y-2 w-full mb-4">
+                            ${Object.entries(gameState.currentDebts).map(([k, v]) => `
+                                <div class="flex justify-between bg-gray-800 p-2 rounded">
+                                    <span class="capitalize">${k}</span>
+                                    <span>${formatCurrency(v)}/mo</span>
+                                </div>
+                            `).join('')}
+                        </div>
+                        <button onclick="advanceStage()" class="btn-primary">Debts Verified</button>
+                    `;
+                    break;
+                case '1-3': // Loan Type
+                    html = `
+                        <h3 class="text-xl font-bold mb-4">Down Payment Strategy</h3>
+                        <div class="grid gap-3 w-full mb-4">
+                            <button onclick="setDP(0.035)" class="p-3 border rounded hover:bg-gray-700 ${gameState.downPaymentPct===0.035?'bg-blue-900 border-blue-500':''}">3.5% FHA</button>
+                            <button onclick="setDP(0.20)" class="p-3 border rounded hover:bg-gray-700 ${gameState.downPaymentPct===0.20?'bg-blue-900 border-blue-500':''}">20% Conventional</button>
+                        </div>
+                        <button onclick="advanceStage()" class="btn-primary">Confirm Strategy</button>
+                    `;
+                    break;
+                case '1-4': // Pre-Approval
+                    const market = MARKET_SCENARIOS[gameState.market];
+                    // Simple max calc
+                    const maxMonthly = (gameState.income * MAX_DTI) - Object.values(gameState.currentDebts).reduce((a,b)=>a+b,0);
+                    const estRate = market.interestRate / 12;
+                    const terms = 360;
+                    // Present Value formula simplified
+                    const maxLoan = maxMonthly * ((1 - Math.pow(1 + estRate, -terms)) / estRate);
+                    const maxPrice = roundToNearest(maxLoan / (1-gameState.downPaymentPct), 5000);
+                    
+                    if(gameState.maxOfferPrice === 0) saveGameState({ maxOfferPrice: maxPrice });
+
+                    html = `
+                        <div class="bg-white text-black p-6 rounded shadow-xl w-full max-w-sm">
+                            <h2 class="text-2xl font-bold text-primary mb-2">PRE-APPROVED</h2>
+                            <p class="text-gray-600 text-sm">You are authorized to purchase up to:</p>
+                            <p class="text-4xl font-black my-4">${formatCurrency(maxPrice)}</p>
+                            <div class="text-xs text-gray-500 border-t pt-2">Cristiano Jarbas Lending Inc.</div>
+                        </div>
+                        <button onclick="advanceStage()" class="btn-primary mt-6">Start Shopping</button>
+                    `;
+                    break;
+                case '2-1': // Search
+                    if(currentListings.length === 0) {
+                        const base = gameState.maxOfferPrice;
+                        currentListings = [
+                            {id:1, addr:"123 Fixer Upper", price: base*0.8, type:"bad"},
+                            {id:2, addr:"456 Standard St", price: base*0.95, type:"ok"},
+                            {id:3, addr:"789 Dream Blvd", price: base*1.05, type:"good"}
+                        ];
+                    }
+                    html = `
+                        <h3 class="text-xl font-bold mb-4">Market Listings</h3>
+                        <div class="space-y-3 w-full max-h-60 overflow-y-auto pr-2">
+                            ${currentListings.map(l => `
+                                <div onclick="selectProp(${l.id})" class="bg-gray-700 p-3 rounded cursor-pointer hover:bg-gray-600 flex justify-between">
+                                    <span>${l.addr}</span>
+                                    <span class="font-bold text-accent">${formatCurrency(l.price)}</span>
+                                </div>
+                            `).join('')}
+                        </div>
+                    `;
+                    break;
+                case '2-2': // Comps
+                    html = `
+                        <h3 class="text-xl font-bold mb-2">Comparable Sales</h3>
+                        <p class="mb-4 text-sm text-gray-400">Analyzing neighborhood value...</p>
+                        <div class="bg-blue-900 bg-opacity-30 border border-blue-500 p-4 rounded w-full mb-4">
+                            <p>Recent Sale 1: ${formatCurrency(gameState.property.price * 0.98)}</p>
+                            <p>Recent Sale 2: ${formatCurrency(gameState.property.price * 1.02)}</p>
+                        </div>
+                        <p class="text-sm">The list price seems fair.</p>
+                        <button onclick="advanceStage()" class="btn-primary mt-4">Proceed</button>
+                    `;
+                    break;
+                case '2-3': // Select
+                    html = `
+                        <h3 class="text-xl font-bold mb-2">Property Selected</h3>
+                        <div class="text-4xl mb-4">🏠</div>
+                        <p class="text-xl font-bold">${gameState.property.addr}</p>
+                        <p class="text-accent text-lg mb-6">${formatCurrency(gameState.property.price)}</p>
+                        <button onclick="advanceStage()" class="btn-primary">Draft Offer</button>
+                    `;
+                    break;
+                case '2-4': // Offer
+                    html = `
+                        <h3 class="text-xl font-bold mb-4">Submit Offer</h3>
+                        <p class="mb-2">List Price: ${formatCurrency(gameState.property.price)}</p>
+                        <input type="number" id="offerVal" value="${gameState.property.price}" class="w-full p-2 text-black rounded mb-4" />
+                        <button onclick="makeOffer()" class="btn-primary w-full">Send Offer</button>
+                    `;
+                    break;
+                case '3-1': // Inspection
+                    html = `
+                        <h3 class="text-xl font-bold mb-4 text-yellow-400">Inspection Report</h3>
+                        <div class="text-left bg-gray-800 p-4 rounded mb-4 text-sm">
+                            <ul class="list-disc pl-4 space-y-2">
+                                <li>Roof shingles worn (Minor)</li>
+                                <li>Water heater old (Medium)</li>
+                            </ul>
+                        </div>
+                        <div class="flex gap-2">
+                            <button onclick="advanceStage()" class="bg-green-600 text-white p-2 rounded flex-1">Accept As-Is</button>
+                            <button onclick="showModal('Negotiation', 'You asked for $2k credit. Seller accepted!'); advanceStage();" class="bg-blue-600 text-white p-2 rounded flex-1">Negotiate Credit</button>
+                        </div>
+                    `;
+                    break;
+                case '3-2': // Appraisal
+                    html = `
+                        <h3 class="text-xl font-bold mb-4">Appraisal</h3>
+                        <div class="w-32 h-32 rounded-full border-4 border-green-500 flex items-center justify-center mx-auto mb-4 bg-gray-800">
+                            <span class="font-bold text-green-400">PASSED</span>
+                        </div>
+                        <p>Value matches offer price.</p>
+                        <button onclick="advanceStage()" class="btn-primary mt-4">Next</button>
+                    `;
+                    break;
+                case '3-3': // Closing Disclosure
+                    html = `
+                        <h3 class="text-xl font-bold mb-2">Final Numbers</h3>
+                        <div class="bg-white text-black p-4 rounded w-full mb-4 text-sm">
+                            <div class="flex justify-between border-b py-1"><span>Price</span><span>${formatCurrency(gameState.offer.price)}</span></div>
+                            <div class="flex justify-between border-b py-1"><span>Rate</span><span>${formatPercent(MARKET_SCENARIOS[gameState.market].interestRate)}</span></div>
+                            <div class="flex justify-between font-bold py-2"><span>Cash to Close</span><span>${formatCurrency(gameState.offer.price * gameState.downPaymentPct + 8000)}</span></div>
+                        </div>
+                        <button onclick="advanceStage()" class="btn-primary">Sign Documents</button>
+                    `;
+                    break;
+                case '3-4': // Keys
+                    html = `
+                        <div class="animate-bounce text-6xl mb-4">🔑</div>
+                        <h2 class="text-3xl font-black text-white mb-2">CONGRATULATIONS!</h2>
+                        <p class="mb-6">You are now the owner of ${gameState.property.addr}!</p>
+                        <button onclick="resetGame()" class="bg-white text-black px-6 py-2 rounded-full font-bold">Play Again</button>
+                    `;
+                    break;
+                default:
+                    html = 'Error';
+            }
+            content.innerHTML = html;
+        };
+
+        // --- WINDOW HELPERS ---
+        window.selectMarket = (key) => {
+            const m = MARKET_SCENARIOS[key];
+            saveGameState({ 
+                market: key, 
+                income: m.startIncome/12, 
+                savings: m.startSavings, 
+                currentDebts: m.startDebts 
+            });
+            advanceStage();
+        };
+
+        window.setDP = (pct) => {
+            saveGameState({ downPaymentPct: pct });
+        };
+
+        window.selectProp = (id) => {
+            const prop = currentListings.find(l=>l.id===id);
+            saveGameState({ property: prop });
+            advanceStage();
+        };
+
+        window.makeOffer = () => {
+            const val = document.getElementById('offerVal').value;
+            saveGameState({ offer: { price: val } });
+            advanceStage();
+        };
+
+        // Modal Logic
+        const modal = document.getElementById('modal');
+        window.showModal = (title, body) => {
+            document.getElementById('modal-title').innerText = title;
+            document.getElementById('modal-body').innerText = body;
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        };
+        window.hideModal = () => {
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        };
+
+        // Init
+        renderCenterContent('start');
+        updateUI();
+
+    </script>
 </body>
 </html>
