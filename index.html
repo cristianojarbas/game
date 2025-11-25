@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cristiano Jarbas Magnata Imobiliário</title>
+    <title>Cristiano Jarbas Tycoon</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/phosphor-icons"></script>
@@ -137,7 +137,7 @@
         <div class="max-w-7xl mx-auto px-4 text-center">
             <h1 class="text-2xl md:text-3xl font-black text-white flex items-center justify-center gap-2">
                 <img src="https://exemplo.com/sua-foto.jpg" onerror="this.onerror=null; this.src='https://via.placeholder.com/32'" alt="Foto de Perfil" class="h-8 w-8 rounded-full object-cover border-2 border-accent mr-2">
-                <span>Cristiano Jarbas <span class="text-primary">Magnata</span></span>
+                <span>Cristiano Jarbas <span class="text-primary">Tycoon</span></span>
             </h1>
         </div>
     </header>
@@ -305,9 +305,10 @@
                 if (id === getNextStage(gameState.stage)) {
                     // Captura inputs da Etapa 1-1 (Renda)
                     if (gameState.stage === '1-1') {
+                        // Usamos parseFloat para garantir que os valores sejam números, não strings.
                         const newIncome = parseFloat(document.getElementById('input-income').value);
                         const newSavings = parseFloat(document.getElementById('input-savings').value);
-                        saveGameState({ income: newIncome, savings: newSavings });
+                        saveGameState({ income: newIncome || 0, savings: newSavings || 0 }); // Usar || 0 para evitar NaN
                     }
                     // Captura inputs da Etapa 1-2 (Dívidas)
                     if (gameState.stage === '1-2') {
@@ -363,7 +364,7 @@
                         
                         <div class="w-full">
                             <label class="label-text">Renda Mensal (R$)</label>
-                            <input type="number" id="input-income" class="input-field" value="${gameState.income.toFixed(2)}">
+                            <input type="number" id="input-income" class="input-field" value="${gameState.income}">
                             
                             <label class="label-text mt-3">Poupança Total (R$)</label>
                             <input type="number" id="input-savings" class="input-field" value="${gameState.savings}">
@@ -403,6 +404,8 @@
                 case '1-4': // Pré-Aprovação
                     const market = MARKET_SCENARIOS[gameState.market];
                     const debtSum = Object.values(gameState.currentDebts).reduce((a,b)=>a+b,0);
+                    
+                    // CÁLCULO ATUALIZADO (Garante que os novos valores de Renda/Dívidas são usados)
                     // Renda Mensal * DTI Máximo - Dívidas Mensais
                     const maxMonthly = (gameState.income * MAX_DTI) - debtSum; 
                     const estRate = market.interestRate / 12;
@@ -412,7 +415,8 @@
                     // Cálculo do Preço Máximo da Casa (Empréstimo / Porcentagem financiada)
                     const maxPrice = roundToNearest(maxLoan / (1-gameState.downPaymentPct), 5000); 
                     
-                    if(gameState.maxOfferPrice === 0) saveGameState({ maxOfferPrice: maxPrice });
+                    // CORRIGIDO: Sempre salva o novo cálculo para atualizar o display no topo.
+                    saveGameState({ maxOfferPrice: maxPrice });
 
                     html = `
                         <div class="bg-white text-black p-6 rounded shadow-xl w-full max-w-sm">
