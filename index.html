@@ -164,6 +164,14 @@
                 <i class="ph ph-trophy text-2xl mb-1"></i> RANKING
             </div>
 
+            <div id="space-calculator" class="board-space zone-1" onclick="renderCenterContent('calculator')" style="grid-area: 3 / 5 / 4 / 6; background-color: #374151;">
+                <i class="ph ph-calculator text-2xl mb-1"></i> CALCULADORA
+            </div>
+            
+            <div id="space-social" class="board-space zone-1" onclick="renderCenterContent('social')" style="grid-area: 4 / 5 / 5 / 6; background-color: #059669;"> 
+                <i class="ph ph-share-network text-2xl mb-1"></i> SOCIAL
+            </div>
+
             <div id="space-1-1" class="board-space zone-1 disabled" onclick="handleSpaceClick('1-1')">
                 <i class="ph ph-money text-2xl mb-1"></i> Renda
             </div>
@@ -227,7 +235,6 @@
 
     <script type="module">
         // 2. INICIALIZAÇÃO FIREBASE (SUBSTITUA PELAS SUAS CHAVES AQUI!)
-        // ATENÇÃO: VOCÊ DEVE SUBSTITUIR TODOS OS CAMPOS ABAIXO.
         const firebaseConfig = {
             apiKey: "[SUAS CHAVES DO FIREBASE AQUI]", 
             authDomain: "[SUAS CHAVES DO FIREBASE AQUI]",
@@ -243,6 +250,15 @@
         const db = firebase.firestore();
         
         // --- CONSTANTES E CONFIGURAÇÃO ---
+        
+        // Taxas baseadas no Credit Score
+        const CREDIT_RATES = {
+            excellent: { min: 760, rate: 0.058, name: "Excelente" }, 
+            good: { min: 670, rate: 0.065, name: "Bom" },
+            fair: { min: 580, rate: 0.075, name: "Regular" },
+            poor: { min: 300, rate: 0.085, name: "Ruim" } 
+        };
+
         const MARKET_SCENARIOS = {
             easy: {
                 name: "Subúrbio Inicial", priceRange: [250000, 350000], taxRate: 0.0085, interestRate: 0.0625,
@@ -275,26 +291,39 @@
             offer: {},
             inspectionIssues: null,
             appraisalValue: 0,
-            // NOVOS CAMPOS PARA PONTUAÇÃO E TEMPO
             startTime: null, 
             endTime: null, 
             finalScore: 0,
-            playerName: "Jogador"
+            playerName: "Jogador",
+            creditScore: 700, 
+            effectiveRate: 0, 
         };
 
         let currentListings = [];
 
         // --- UTILS ---
         const formatCurrency = (amt) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 }).format(amt);
-        const formatPercent = (val) => (val * 100).toFixed(1) + '%';
+        const formatPercent = (val) => (val * 100).toFixed(2) + '%';
         const roundToNearest = (val, n) => Math.round(val / n) * n;
 
-        // Função para formatar o tempo em minutos e segundos
         const formatTime = (ms) => {
             const totalSeconds = Math.floor(ms / 1000);
             const minutes = Math.floor(totalSeconds / 60);
             const seconds = totalSeconds % 60;
             return `${minutes}m ${seconds}s`;
+        };
+
+        // Função para obter a taxa de juros baseada no Credit Score
+        const getEffectiveRate = (score) => {
+            if (score >= CREDIT_RATES.excellent.min) {
+                return CREDIT_RATES.excellent.rate;
+            } else if (score >= CREDIT_RATES.good.min) {
+                return CREDIT_RATES.good.rate;
+            } else if (score >= CREDIT_RATES.fair.min) {
+                return CREDIT_RATES.fair.rate;
+            } else {
+                return CREDIT_RATES.poor.rate;
+            }
         };
 
         // --- LÓGICA DE PONTUAÇÃO ---
@@ -304,20 +333,19 @@
             }
 
             const marketData = MARKET_SCENARIOS[gameState.market];
-            const baseScore = gameState.property.price; // Score base é o valor do imóvel
+            const baseScore = gameState.property.price;
             const marketMultiplier = marketData.scoreMult;
             
             const timeElapsedMs = gameState.endTime - gameState.startTime;
-            const timePenaltyFactor = Math.min(1, 1000000 / timeElapsedMs); // Quanto mais rápido, menor a penalidade (Max 1)
+            const timePenaltyFactor = Math.min(1, 1000000 / timeElapsedMs);
             
-            // Score = (Valor do Imóvel * Multiplicador de Mercado) * Fator de Velocidade
             const finalScore = Math.round(baseScore * marketMultiplier * timePenaltyFactor);
 
             saveGameState({ finalScore: finalScore });
             return finalScore;
         };
 
-        // 3. SALVAR RANKING NO FIREBASE
+        // --- FIREBASE (RANKING) ---
         const saveRanking = async (name, score, time) => {
             try {
                 await db.collection("rankings").add({
@@ -333,12 +361,11 @@
             }
         };
 
-        // 4. CARREGAR RANKING DO FIREBASE
         const loadRanking = async () => {
             try {
                 const snapshot = await db.collection("rankings")
-                                        .orderBy("score", "desc") // Ordena por score descendente
-                                        .limit(10) // Limita aos 10 melhores
+                                        .orderBy("score", "desc")
+                                        .limit(10)
                                         .get();
                 
                 const rankings = snapshot.docs.map(doc => ({
@@ -391,8 +418,10 @@
                     nextEl.classList.add('stage-active');
                 }
             }
-             // O botão de ranking é sempre ativo
+            // Botões de ranking, calculadora e social sempre ativos
             document.getElementById('space-ranking').classList.remove('disabled');
+            document.getElementById('space-calculator').classList.remove('disabled');
+            document.getElementById('space-social').classList.remove('disabled');
         };
 
         window.handleSpaceClick = (id) => {
@@ -401,7 +430,13 @@
                 if (gameState.stage === '1-1') {
                     const newIncome = parseFloat(document.getElementById('input-income').value);
                     const newSavings = parseFloat(document.getElementById('input-savings').value);
-                    saveGameState({ income: newIncome || 0, savings: newSavings || 0 }); 
+                    const newCreditScore = parseFloat(document.getElementById('input-credit-score').value); 
+                    
+                    saveGameState({ 
+                        income: newIncome || 0, 
+                        savings: newSavings || 0,
+                        creditScore: newCreditScore || 700 
+                    }); 
                 }
                 if (gameState.stage === '1-2') {
                     let newDebts = {};
@@ -411,11 +446,10 @@
                     saveGameState({ currentDebts: newDebts });
                 }
                 
-                // Se a fase for '3-4' (Chaves!), calcula e exibe o score
                 if (id === 'complete') {
                     saveGameState({ endTime: Date.now() });
                     calculateScore();
-                    renderCenterContent(id); // Renderiza tela de conclusão
+                    renderCenterContent(id);
                     return; 
                 }
                 
@@ -437,6 +471,33 @@
             location.reload();
         };
 
+        // Função de Cálculo de Pagamento Mensal de Hipoteca
+        window.calculateMortgage = () => {
+            const loan = parseFloat(document.getElementById('calc-loan').value);
+            const annualRatePct = parseFloat(document.getElementById('calc-rate').value) / 100;
+            const termYears = parseFloat(document.getElementById('calc-term').value);
+
+            if (isNaN(loan) || isNaN(annualRatePct) || isNaN(termYears) || loan <= 0 || termYears <= 0) {
+                document.getElementById('calc-result').classList.add('hidden');
+                return;
+            }
+
+            const monthlyRate = annualRatePct / 12;
+            const totalPayments = termYears * 12;
+
+            let monthlyPayment;
+            if (monthlyRate === 0) {
+                monthlyPayment = loan / totalPayments;
+            } else {
+                // Fórmula do Pagamento Mensal
+                monthlyPayment = loan * (monthlyRate * Math.pow(1 + monthlyRate, totalPayments)) / (Math.pow(1 + monthlyRate, totalPayments) - 1);
+            }
+            
+            document.getElementById('monthly-payment-display').innerText = formatCurrency(monthlyPayment);
+            document.getElementById('calc-result').classList.remove('hidden');
+        };
+
+
         // --- RENDER FUNCTIONS ---
         const renderCenterContent = async (id) => {
             const content = document.getElementById('center-content');
@@ -444,7 +505,6 @@
 
             switch(id) {
                 case 'start':
-                    // Inicia a contagem de tempo
                     saveGameState({ startTime: Date.now() }); 
                     html = `
                         <div class="mb-6 relative">
@@ -485,10 +545,59 @@
                             </div>
                         `;
                     }
-                    return; // Retorna para não sobrescrever o conteúdo após o carregamento assíncrono
+                    return;
 
-                case '3-4': // Chaves! (Antes de 'complete')
-                    // Nenhuma lógica especial, apenas o visual
+                case 'calculator': 
+                    const currentRate = getEffectiveRate(gameState.creditScore);
+                    html = `
+                        <h3 class="text-xl font-bold mb-4">Calculadora de Prestação</h3>
+                        <p class="text-sm text-gray-400 mb-4">Simule o pagamento mensal. Sua Taxa Estimada: <span class="text-accent font-bold">${formatPercent(currentRate)}</span></p>
+
+                        <div class="w-full space-y-3">
+                            <label class="label-text">Valor do Empréstimo (R$)</label>
+                            <input type="number" id="calc-loan" class="input-field" value="300000">
+
+                            <label class="label-text">Taxa Anual (%)</label>
+                            <input type="number" id="calc-rate" class="input-field" step="0.001" value="${(currentRate * 100).toFixed(3)}">
+                            
+                            <label class="label-text">Prazo (Anos)</label>
+                            <input type="number" id="calc-term" class="input-field" value="30">
+                        </div>
+
+                        <button onclick="calculateMortgage()" class="btn-primary mt-4">Calcular Prestação</button>
+
+                        <div id="calc-result" class="mt-4 p-4 bg-gray-700 rounded-lg w-full font-bold text-lg hidden">
+                            Prestação Mensal: <span class="text-accent" id="monthly-payment-display">R$ 0</span>
+                        </div>
+                    `;
+                    break;
+                
+                case 'social':
+                    // ** LINKS DE MÍDIA SOCIAL ATUALIZADOS **
+                    const socialLinks = [
+                        { name: "Instagram", url: "https://www.instagram.com/cristianojarbasrealestate/", icon: "ph-instagram-logo" },
+                        { name: "Facebook", url: "https://www.facebook.com/SEU_FACEBOOK_AQUI", icon: "ph-facebook-logo" },
+                        { name: "LinkedIn", url: "https://www.linkedin.com/in/SEU_LINKEDIN", icon: "ph-linkedin-logo" },
+                        { name: "Website/Blog", url: "https://www.seusite.com.br", icon: "ph-globe" },
+                        { name: "WhatsApp", url: "https://wa.me/55DDENÚMERO", icon: "ph-whatsapp-logo" }
+                    ];
+
+                    html = `
+                        <h3 class="text-2xl font-bold mb-6 text-accent">Conecte-se com o Corretor!</h3>
+                        <div class="space-y-4 w-full">
+                            ${socialLinks.map(link => `
+                                <a href="${link.url}" target="_blank" class="flex items-center p-4 bg-gray-700 rounded-xl hover:bg-gray-600 transition duration-200">
+                                    <i class="ph ${link.icon} text-3xl text-white mr-4"></i>
+                                    <span class="font-bold text-lg">${link.name}</span>
+                                    <i class="ph ph-arrow-right text-xl ml-auto text-gray-400"></i>
+                                </a>
+                            `).join('')}
+                        </div>
+                        <button onclick="hideModal()" class="btn-primary mt-6">Voltar ao Jogo</button>
+                    `;
+                    break;
+
+                case '3-4':
                     if (!gameState.property) return 'Erro.';
                     html = `
                         <div class="animate-bounce text-6xl mb-4">🔑</div>
@@ -520,10 +629,10 @@
                         </button>
                     `;
                     break;
-                case '1-1': // Renda e Poupança (EDITÁVEL)
+                case '1-1': // Renda, Poupança e Credit Score
                     html = `
-                        <h3 class="text-xl font-bold mb-4">Auditoria Financeira</h3>
-                        <p class="text-sm text-gray-400 mb-4">Ajuste sua renda mensal e poupança se necessário:</p>
+                        <h3 class="text-xl font-bold mb-4">Auditoria Financeira e Crédito</h3>
+                        <p class="text-sm text-gray-400 mb-4">Informe seus dados para simular o empréstimo:</p>
                         
                         <div class="w-full">
                             <label class="label-text">Renda Mensal (R$)</label>
@@ -531,230 +640,477 @@
                             
                             <label class="label-text mt-3">Poupança Total (R$)</label>
                             <input type="number" id="input-savings" class="input-field" value="${gameState.savings}">
+                            
+                            <label class="label-text mt-3">Pontuação de Crédito (Score)</label>
+                            <input type="number" id="input-credit-score" class="input-field" value="${gameState.creditScore}">
+                            <p class="text-xs text-gray-500 mt-[-5px] mb-2">Scores altos (760+) garantem taxas melhores.</p>
+
                         </div>
 
                         <button onclick="handleSpaceClick('1-2')" class="btn-primary mt-4">Salvar e Próximo</button>
+                        <button onclick="renderCenterContent('calculator')" class="bg-gray-600 text-white px-6 py-2 rounded-xl font-bold hover:bg-gray-700 w-full mt-2">
+                            Acessar Calculadora
+                        </button>
                     `;
                     break;
-                case '1-2': // Dívidas (EDITÁVEL)
-                    const debtTotal = Object.values(gameState.currentDebts).reduce((a,b)=>a+b,0);
+                case '1-2': // Dívidas
+                    // ... (demais cases do jogo)
                     html = `
-                        <h3 class="text-xl font-bold mb-4">Gestão de Dívidas</h3>
-                           <p class="text-sm text-gray-400 mb-4">Edite seus pagamentos mensais de dívidas:</p>
+                        <h3 class="text-xl font-bold mb-4">Dívidas e Compromissos Mensais</h3>
+                        <p class="text-sm text-gray-400 mb-4">Informe o pagamento mensal mínimo das suas dívidas. Isso afeta seu poder de compra (DTI).</p>
                         
-                        <div class="space-y-2 w-full mb-4">
-                            ${Object.entries(gameState.currentDebts).map(([k, v]) => `
-                                <div>
-                                    <label class="label-text capitalize">${k}</label>
-                                    <input type="number" class="input-field debt-input" name="${k}" value="${v}">
+                        <div class="w-full space-y-3">
+                            ${Object.entries(gameState.currentDebts).map(([key, value]) => `
+                                <div class="w-full">
+                                    <label class="label-text">${key.charAt(0).toUpperCase() + key.slice(1)} (R$)</label>
+                                    <input type="number" name="${key}" class="input-field debt-input" value="${value}">
                                 </div>
                             `).join('')}
                         </div>
-                           <div class="text-right text-sm text-accent font-bold mb-4">Total: ${formatCurrency(debtTotal)}/mês</div>
-                        <button onclick="handleSpaceClick('1-3')" class="btn-primary">Confirmar Dívidas</button>
+                        
+                        <button onclick="handleSpaceClick('1-3')" class="btn-primary mt-4">Salvar e Próximo</button>
                     `;
                     break;
-                case '1-3': // Tipo de Empréstimo (Entrada) - Seleção com Destaque
+                case '1-3': // Entrada (Down Payment)
+                    const requiredDown = roundToNearest(gameState.savings * 0.5, 5000); // 50% da poupança sugerida
+                    const maxDown = Math.min(gameState.savings, 300000); // Limite de 300k para a entrada
+                    const defaultDown = Math.min(requiredDown, maxDown);
+
                     html = `
-                        <h3 class="text-xl font-bold mb-4">Estratégia de Entrada</h3>
-                        <div class="grid gap-3 w-full mb-4">
-                            <button onclick="setDP(0.035)" class="p-3 border rounded hover:bg-gray-700 ${gameState.downPaymentPct===0.035?'bg-blue-900 border-blue-500 ring-2 ring-blue-300':''}">
-                                3.5% (Mínimo) - Requer PMI
-                            </button>
-                            <button onclick="setDP(0.20)" class="p-3 border rounded hover:bg-gray-700 ${gameState.downPaymentPct===0.20?'bg-blue-900 border-blue-500 ring-2 ring-blue-300':''}">
-                                20% (Padrão) - Sem PMI
-                            </button>
+                        <h3 class="text-xl font-bold mb-4">Valor da Entrada (Down Payment)</h3>
+                        <p class="text-sm text-gray-400 mb-4">O valor da entrada afeta o empréstimo e se você precisará de PMI (seguro). Você tem ${formatCurrency(gameState.savings)} em poupança.</p>
+                        
+                        <div class="w-full space-y-3">
+                            <label class="label-text">Entrada (R$)</label>
+                            <input type="number" id="input-down-payment" class="input-field" value="${defaultDown}">
+                            <p class="text-xs text-gray-500">Sugestão: Pelo menos ${formatCurrency(requiredDown)} para ser competitivo.</p>
                         </div>
-                        <button onclick="advanceStage()" class="btn-primary">Confirmar Estratégia</button>
+
+                        <button onclick="calculateMaxBudget()" class="btn-primary mt-4">Calcular Orçamento Máximo</button>
                     `;
                     break;
                 case '1-4': // Pré-Aprovação
-                    const market = MARKET_SCENARIOS[gameState.market];
-                    const debtSum = Object.values(gameState.currentDebts).reduce((a,b)=>a+b,0);
-                    
-                    const maxMonthly = (gameState.income * MAX_DTI) - debtSum; 
-                    const estRate = market.interestRate / 12;
-                    const terms = 360; 
-                    const maxLoan = maxMonthly * ((1 - Math.pow(1 + estRate, -terms)) / estRate); 
-                    const maxPrice = roundToNearest(maxLoan / (1-gameState.downPaymentPct), 5000); 
-                    
-                    saveGameState({ maxOfferPrice: maxPrice });
+                    // Lógica para calcular DTI e Orçamento Máximo é chamada em calculateMaxBudget
+                    const totalMonthlyDebt = Object.values(gameState.currentDebts).reduce((acc, curr) => acc + curr, 0);
+                    const maxMonthlyHousing = (gameState.income * MAX_DTI) - totalMonthlyDebt;
 
-                    html = `
-                        <div class="bg-white text-black p-6 rounded shadow-xl w-full max-w-sm">
-                            <h2 class="text-2xl font-bold text-primary mb-2">PRÉ-APROVADO</h2>
-                            <p class="text-gray-600 text-sm">Você está autorizado a comprar por até:</p>
-                            <p class="text-4xl font-black my-4">${formatCurrency(maxPrice)}</p>
-                            <div class="text-xs text-gray-500 border-t pt-2 font-bold">Baseado em sua Renda e Dívidas</div>
-                        </div>
-                        <button onclick="advanceStage()" class="btn-primary mt-6">Começar a Buscar</button>
-                    `;
+                    if (gameState.maxOfferPrice > 0) {
+                        html = `
+                            <div class="text-4xl mb-4 text-primary">✅</div>
+                            <h3 class="text-2xl font-bold text-white mb-4">Pré-Aprovação Concluída!</h3>
+                            <p class="text-sm text-gray-400 mb-4">Com base em seus dados e dívidas mensais de ${formatCurrency(totalMonthlyDebt)}, você tem um poder de fogo para um pagamento máximo de moradia de ${formatCurrency(maxMonthlyHousing)}.</p>
+                            <p class="text-xl font-black text-accent">ORÇAMENTO MÁXIMO:</p>
+                            <p class="text-4xl font-black text-white">${formatCurrency(gameState.maxOfferPrice)}</p>
+                            <button onclick="advanceStage()" class="btn-primary mt-6">Iniciar Busca (Próximo)</button>
+                        `;
+                    } else {
+                        html = `
+                            <div class="text-4xl mb-4 text-secondary">❌</div>
+                            <h3 class="text-2xl font-bold text-white mb-4">Pré-Aprovação Recusada!</h3>
+                            <p class="text-sm text-gray-400 mb-4">Seu nível de endividamento (${formatPercent((totalMonthlyDebt / gameState.income).toFixed(2))}) ou sua entrada não permitem uma compra no mercado atual.</p>
+                            <button onclick="renderCenterContent('1-3')" class="btn-primary mt-6">Tentar Outra Entrada</button>
+                        `;
+                    }
                     break;
-                case '2-1': // Busca (COM IMAGENS)
-                    if(currentListings.length === 0) {
-                        const base = gameState.maxOfferPrice;
-                        currentListings = [
-                            {id:1, addr:"Rua dos Reformadores, 123", price: base*0.8, type:"bad", img: "https://images.unsplash.com/photo-1568605114967-8130f3a36994?w=500&q=80"},
-                            {id:2, addr:"Avenida Padrão, 456", price: base*0.95, type:"ok", img: "https://images.unsplash.com/photo-1570129477492-45c003edd2be?w=500&q=80"},
-                            {id:3, addr:"Alameda dos Sonhos, 789", price: base*1.05, type:"good", img: "https://images.unsplash.com/photo-1600596542815-e32cbbbf4a63?w=500&q=80"}
-                        ];
+                case '2-1': // Buscar Imóveis
+                    if (currentListings.length === 0) {
+                        currentListings = generateListings();
                     }
                     html = `
-                        <h3 class="text-xl font-bold mb-4">Imóveis Disponíveis</h3>
-                        <div class="space-y-4 w-full max-h-[400px] overflow-y-auto pr-2">
-                            ${currentListings.map(l => `
-                                <div onclick="selectProp(${l.id})" class="bg-gray-800 rounded-xl overflow-hidden cursor-pointer hover:ring-2 ring-accent transition shadow-lg group">
-                                    <div class="relative h-32 overflow-hidden">
-                                        <img src="${l.img}" class="w-full h-full object-cover group-hover:scale-110 transition duration-500" alt="Imagem da propriedade">
-                                        <div class="absolute bottom-0 left-0 bg-black bg-opacity-60 px-2 py-1 text-xs text-white font-bold">${l.addr}</div>
-                                    </div>
-                                    <div class="p-3 flex justify-between items-center">
-                                        <span class="text-sm text-gray-300">3 Quartos | 2 Banheiros</span>
-                                        <span class="font-bold text-accent text-lg">${formatCurrency(l.price)}</span>
-                                    </div>
+                        <h3 class="text-xl font-bold mb-4">Busca de Imóveis</h3>
+                        <p class="text-sm text-gray-400 mb-4">Seu orçamento máximo é de <span class="text-accent font-bold">${formatCurrency(gameState.maxOfferPrice)}</span>. Escolha um imóvel abaixo para analisar.</p>
+                        
+                        <div class="space-y-4 w-full text-left">
+                            ${currentListings.map((prop, index) => `
+                                <div class="p-4 rounded-lg border-2 ${prop.price > gameState.maxOfferPrice ? 'border-secondary bg-red-900 bg-opacity-30' : 'border-primary bg-gray-700'}">
+                                    <div class="font-bold text-lg">${prop.type} em ${prop.location}</div>
+                                    <div class="text-xl font-black text-white">${formatCurrency(prop.price)}</div>
+                                    ${prop.price > gameState.maxOfferPrice ? '<p class="text-secondary text-sm font-bold">FORA DO ORÇAMENTO</p>' : ''}
+                                    <p class="text-sm text-gray-400">${prop.beds} Quartos | ${prop.baths} Banheiros | ${prop.sqft}m²</p>
+                                    <button onclick="selectProperty(${index})" class="text-accent font-bold mt-2">Selecionar Imóvel</button>
                                 </div>
                             `).join('')}
                         </div>
                     `;
                     break;
-                case '2-2': // Comparar
-                    if (!gameState.property) return 'Selecione um imóvel primeiro.';
+                case '2-2': // Comparar Imóveis
+                    if (!gameState.property) {
+                        html = '<p class="text-secondary">Selecione um imóvel no passo anterior (Buscar Imóveis).</p>';
+                        break;
+                    }
                     html = `
-                        <h3 class="text-xl font-bold mb-2">Análise de Vendas Comparáveis</h3>
-                        <p class="mb-4 text-sm text-gray-400">Analisando o valor do bairro...</p>
-                        <div class="bg-blue-900 bg-opacity-30 border border-blue-500 p-4 rounded w-full mb-4">
-                            <p>Venda Recente 1: ${formatCurrency(gameState.property.price * 0.98)}</p>
-                            <p>Venda Recente 2: ${formatCurrency(gameState.property.price * 1.02)}</p>
+                        <h3 class="text-xl font-bold mb-4">Análise do Imóvel Selecionado</h3>
+                        <div class="p-4 bg-gray-700 rounded-lg w-full text-left">
+                            <div class="font-bold text-lg">${gameState.property.type} em ${gameState.property.location}</div>
+                            <div class="text-3xl font-black text-accent mb-2">${formatCurrency(gameState.property.price)}</div>
+                            <p class="text-sm text-gray-400">Preço de Mercado: ${formatCurrency(gameState.property.marketPrice)}</p>
+                            <p class="text-sm text-gray-400">Diferença: ${formatCurrency(gameState.property.price - gameState.property.marketPrice)}</p>
                         </div>
-                        <p class="text-sm">O preço de tabela parece justo.</p>
-                        <button onclick="advanceStage()" class="btn-primary mt-4">Continuar</button>
+
+                        <p class="text-sm text-gray-400 mt-4">Com base na comparação de mercado (CMA), o preço está justo. O próximo passo é fazer a oferta.</p>
+                        <button onclick="advanceStage()" class="btn-primary mt-6">Fazer Oferta (Próximo)</button>
                     `;
                     break;
-                case '2-3': // Selecionar (COM IMAGEM)
-                    if (!gameState.property) return 'Selecione um imóvel primeiro.';
+                case '2-3': // Selecionar Imóvel - Lógica simples de confirmação
+                    if (!gameState.property) {
+                        html = '<p class="text-secondary">Nenhum imóvel selecionado. Volte para "Buscar Imóveis".</p>';
+                        break;
+                    }
                     html = `
-                        <h3 class="text-xl font-bold mb-2">Imóvel Selecionado</h3>
-                        <div class="w-full h-48 rounded-xl overflow-hidden mb-4 shadow-2xl border-2 border-accent">
-                            <img src="${gameState.property.img}" class="w-full h-full object-cover" alt="Imóvel Selecionado">
+                        <h3 class="text-xl font-bold mb-4">Confirmação de Seleção</h3>
+                        <p class="text-lg font-bold mb-2">Imóvel Escolhido:</p>
+                        <div class="p-4 bg-gray-700 rounded-lg w-full">
+                            <div class="font-bold text-lg">${gameState.property.type} em ${gameState.property.location}</div>
+                            <div class="text-3xl font-black text-white">${formatCurrency(gameState.property.price)}</div>
                         </div>
-                        <p class="text-xl font-bold">${gameState.property.addr}</p>
-                        <p class="text-accent text-2xl font-black mb-6">${formatCurrency(gameState.property.price)}</p>
-                        <button onclick="advanceStage()" class="btn-primary">Elaborar Proposta</button>
+                        <p class="text-sm text-gray-400 mt-4">Vamos verificar a análise de mercado antes de fazer a oferta.</p>
+                        <button onclick="advanceStage()" class="btn-primary mt-6">Verificar Mercado (Próximo)</button>
                     `;
                     break;
                 case '2-4': // Oferta
                     if (!gameState.property) return 'Selecione um imóvel primeiro.';
+                    const suggestedOffer = roundToNearest(gameState.property.price * 0.98, 1000); 
+                    
                     html = `
-                        <h3 class="text-xl font-bold mb-4">Enviar Proposta</h3>
-                        <p class="mb-2">Preço de Tabela: ${formatCurrency(gameState.property.price)}</p>
-                        <input type="number" id="offerVal" value="${gameState.property.price}" class="input-field text-xl font-bold" />
-                        <button onclick="makeOffer()" class="btn-primary w-full">Enviar Proposta</button>
+                        <h3 class="text-xl font-bold mb-4">Fazer Oferta</h3>
+                        <p class="text-sm text-gray-400 mb-4">Imóvel: ${formatCurrency(gameState.property.price)}.</p>
+                        
+                        <div class="w-full space-y-3">
+                            <label class="label-text">Valor da Oferta (R$)</label>
+                            <input type="number" id="input-offer-price" class="input-field" value="${suggestedOffer}">
+                            
+                            <label class="label-text">Condição de Contingência</label>
+                            <select id="input-contingency" class="input-field">
+                                <option value="inspection">Inspeção (Recomendado)</option>
+                                <option value="none">Nenhuma (Oferta mais forte)</option>
+                            </select>
+                        </div>
+                        <button onclick="processOffer()" class="btn-primary mt-4">Enviar Oferta</button>
                     `;
                     break;
                 case '3-1': // Inspeção
+                    if (!gameState.offer.accepted) return 'Oferta não aceita.';
+                    
+                    const inspectionResult = runInspection();
+                    saveGameState({ inspectionIssues: inspectionResult });
+
                     html = `
-                        <h3 class="text-xl font-bold mb-4 text-yellow-400">Relatório de Inspeção</h3>
-                        <div class="text-left bg-gray-800 p-4 rounded w-full mb-4 text-sm">
-                            <ul class="list-disc pl-4 space-y-2">
-                                <li>Telhas do telhado gastas (Pequeno)</li>
-                                <li>Aquecedor de água antigo (Médio)</li>
-                            </ul>
+                        <h3 class="text-xl font-bold mb-4">Relatório de Inspeção</h3>
+                        
+                        <div class="p-4 bg-gray-700 rounded-lg w-full text-left">
+                            <p class="font-bold mb-2 text-white">Custos de Reparo Estimados:</p>
+                            <p class="text-4xl font-black text-secondary">${formatCurrency(inspectionResult)}</p>
                         </div>
-                        <div class="flex gap-2 w-full">
-                            <button onclick="advanceStage()" class="bg-green-600 text-white p-2 rounded flex-1 font-bold">Aceitar Como Está</button>
-                            <button onclick="showModal('Negociação', 'Você solicitou R$ 2.000 de crédito. O vendedor aceitou!'); advanceStage();" class="bg-blue-600 text-white p-2 rounded flex-1 font-bold">Negociar Crédito</button>
-                        </div>
+
+                        <p class="text-sm text-gray-400 mt-4">Os reparos estimados são de ${formatCurrency(inspectionResult)}. Você pode pedir um crédito ao vendedor ou aceitar o custo.</p>
+                        
+                        <button onclick="processInspection('negotiate')" class="bg-primary text-white px-6 py-3 rounded-xl font-bold hover:bg-blue-700 w-full mt-4">
+                            Pedir Crédito (Negociar)
+                        </button>
+                        <button onclick="processInspection('accept')" class="bg-gray-600 text-white px-6 py-3 rounded-xl font-bold hover:bg-gray-700 w-full mt-2">
+                            Aceitar Custos (Avançar)
+                        </button>
                     `;
                     break;
-                case '3-2': // Avaliação
+                case '3-2': // Avaliação (Appraisal)
+                    const appraisalValue = runAppraisal();
+                    saveGameState({ appraisalValue: appraisalValue });
+                    
+                    let appraisalHtml;
+                    let nextAction;
+                    if (appraisalValue >= gameState.property.price) {
+                        appraisalHtml = `<div class="text-4xl mb-2 text-primary">👍</div><p class="text-white font-bold">Avaliador confirma o valor da venda.</p>`;
+                        nextAction = 'advanceStage()';
+                    } else {
+                        const difference = gameState.property.price - appraisalValue;
+                        appraisalHtml = `<div class="text-4xl mb-2 text-secondary">⚠️</div><p class="text-secondary font-bold">Avaliação Abaixo! O banco só empresta com base em ${formatCurrency(appraisalValue)}. Você precisa cobrir a diferença de ${formatCurrency(difference)}.</p>`;
+                        nextAction = 'processLowAppraisal('+difference+')';
+                    }
+
                     html = `
-                        <h3 class="text-xl font-bold mb-4">Avaliação Bancária</h3>
-                        <div class="w-32 h-32 rounded-full border-4 border-green-500 flex items-center justify-center mx-auto mb-4 bg-gray-800">
-                            <span class="font-bold text-green-400">APROVADO</span>
+                        <h3 class="text-xl font-bold mb-4">Relatório de Avaliação</h3>
+                        <div class="p-4 bg-gray-700 rounded-lg w-full text-left mb-4">
+                            <p class="font-bold mb-2 text-white">Valor Avaliado:</p>
+                            <p class="text-4xl font-black text-accent">${formatCurrency(appraisalValue)}</p>
                         </div>
-                        <p>O valor de avaliação corresponde ao preço da oferta.</p>
-                        <button onclick="advanceStage()" class="btn-primary mt-4">Próximo</button>
+
+                        ${appraisalHtml}
+                        
+                        <button onclick="${nextAction}" class="btn-primary mt-6">Próxima Etapa</button>
                     `;
                     break;
-                case '3-3': // Fechamento
+                case '3-3': // Fechamento (Closing)
+                    const closingCosts = calculateClosingCosts();
+                    
                     html = `
-                        <h3 class="text-xl font-bold mb-2">Números Finais</h3>
-                        <div class="bg-white text-black p-4 rounded w-full mb-4 text-sm">
-                            <div class="flex justify-between border-b py-1"><span>Preço</span><span>${formatCurrency(gameState.offer.price)}</span></div>
-                            <div class="flex justify-between border-b py-1"><span>Taxa Juros</span><span>${formatPercent(MARKET_SCENARIOS[gameState.market].interestRate)}</span></div>
-                            <div class="flex justify-between font-bold py-2"><span>Dinheiro para Fechamento</span><span>${formatCurrency(gameState.offer.price * gameState.downPaymentPct + 8000)}</span></div>
+                        <h3 class="text-xl font-bold mb-4">Fechamento do Contrato</h3>
+                        <p class="text-lg font-bold mb-4 text-white">Custos Finais a Pagar:</p>
+                        <p class="text-5xl font-black text-accent mb-4">${formatCurrency(closingCosts.total)}</p>
+                        
+                        <div class="text-sm text-gray-400 w-full text-left p-4 bg-gray-700 rounded-lg">
+                            <p>Entrada Líquida: ${formatCurrency(closingCosts.downPayment)}</p>
+                            <p>Taxas e Impostos: ${formatCurrency(closingCosts.feesAndTaxes)}</p>
+                            <p>Crédito do Vendedor: ${formatCurrency(closingCosts.sellerCredit)}</p>
                         </div>
-                        <button onclick="advanceStage()" class="btn-primary">Assinar Documentos</button>
+                        
+                        <button onclick="processClosing(${closingCosts.total})" class="btn-primary mt-6">Assinar e Pagar</button>
                     `;
                     break;
                 default:
-                    html = 'Erro: Conteúdo não encontrado';
+                    html = `
+                        <div class="text-3xl font-bold text-white mb-4">Bem-vindo, Cristiano Jarbas!</div>
+                        <p class="text-gray-400 mb-6">Este é o seu jogo de simulação de compra de imóvel. Comece selecionando o Mercado de atuação no botão **INICIAR**.</p>
+                        <p class="text-gray-400">Aqui você irá guiar seu cliente pela jornada do comprador, do financiamento à entrega das chaves.</p>
+                    `;
+                    break;
             }
+
             content.innerHTML = html;
         };
+        
+        // --- GAME LOGIC FUNCTIONS ---
 
-        // --- WINDOW HELPERS ---
-        window.selectMarket = (key) => {
-            const m = MARKET_SCENARIOS[key];
+        const selectMarket = (marketId) => {
+            const marketData = MARKET_SCENARIOS[marketId];
             saveGameState({ 
-                market: key, 
-                income: m.startIncome, 
-                savings: m.startSavings, 
-                currentDebts: m.startDebts 
+                market: marketId, 
+                income: marketData.startIncome, 
+                savings: marketData.startSavings, 
+                currentDebts: marketData.startDebts
             });
             advanceStage();
         };
 
-        window.setDP = (pct) => {
-            saveGameState({ downPaymentPct: pct });
-            renderCenterContent(gameState.stage);
+        const calculateMaxBudget = () => {
+            const marketData = MARKET_SCENARIOS[gameState.market];
+            
+            const downPayment = parseFloat(document.getElementById('input-down-payment').value) || 0;
+            if (downPayment > gameState.savings) {
+                showModal("Erro", "A entrada não pode ser maior do que sua Poupança Total.");
+                return;
+            }
+            saveGameState({ downPaymentPct: downPayment });
+
+            const totalMonthlyDebt = Object.values(gameState.currentDebts).reduce((acc, curr) => acc + curr, 0);
+            
+            // 1. Calcular DTI Máximo para Prestação (Principal + Juros + Taxas)
+            const maxTotalMonthlyPayment = gameState.income * MAX_DTI;
+            const maxPITI = maxTotalMonthlyPayment - totalMonthlyDebt;
+
+            if (maxPITI <= 0) {
+                // Cliente muito endividado
+                saveGameState({ maxOfferPrice: 0 });
+                renderCenterContent('1-4');
+                return;
+            }
+
+            const effectiveRate = getEffectiveRate(gameState.creditScore);
+            const monthlyRate = effectiveRate / 12;
+            const term = 30 * 12; 
+
+            // 2. Calcular P&I Máximo (Principal + Juros)
+            // Estima o seguro e impostos (PITI - (T+I)) para isolar P&I
+            const taxEstimate = 0.001 * marketData.taxRate; // Estimativa conservadora de IPTU/Taxas
+            const insuranceEstimate = INSURANCE_COST / 12; // Estimativa de seguro
+            
+            const maxPI = maxPITI - taxEstimate - insuranceEstimate;
+            if (maxPI <= 0) {
+                 saveGameState({ maxOfferPrice: 0 });
+                 renderCenterContent('1-4');
+                 return;
+            }
+
+            // 3. Reversa a fórmula da hipoteca para encontrar o valor do Empréstimo (Loan)
+            // Loan = P&I * [ (1 - (1 + r)^(-n)) / r ]
+            let maxLoan;
+            if (monthlyRate === 0) {
+                maxLoan = maxPI * term;
+            } else {
+                maxLoan = maxPI * ( (1 - Math.pow(1 + monthlyRate, -term)) / monthlyRate );
+            }
+            
+            // 4. Calcular o Preço Máximo da Oferta (Loan + Down Payment)
+            let maxPrice = maxLoan + downPayment;
+
+            // Arredonda para um valor mais realista
+            const roundedMaxPrice = roundToNearest(maxPrice, 10000); 
+
+            saveGameState({ maxOfferPrice: roundedMaxPrice, effectiveRate: effectiveRate });
+            renderCenterContent('1-4');
         };
 
-        window.selectProp = (id) => {
-            const prop = currentListings.find(l=>l.id===id);
-            saveGameState({ property: prop });
-            advanceStage();
+        const generateListings = () => {
+            const marketData = MARKET_SCENARIOS[gameState.market];
+            const [min, max] = marketData.priceRange;
+            
+            const listings = [];
+            for (let i = 0; i < 4; i++) {
+                const priceBase = Math.random() * (max - min) + min;
+                const price = roundToNearest(priceBase, 5000); 
+                
+                // Simula o valor de mercado (CMA) com +/- 5% de variação
+                const marketPrice = roundToNearest(price * (1 + (Math.random() - 0.5) * 0.1), 5000);
+                
+                listings.push({
+                    id: i,
+                    price: price,
+                    marketPrice: marketPrice,
+                    type: ['Casa Isolada', 'Sobrado', 'Apartamento', 'Townhouse'][Math.floor(Math.random() * 4)],
+                    location: ['Bairro Nobre', 'Região Central', 'Periferia em Ascensão', 'Próximo ao Parque'][i],
+                    beds: Math.floor(Math.random() * 3) + 2,
+                    baths: Math.floor(Math.random() * 2) + 1,
+                    sqft: roundToNearest(price / 1000, 10), // Tamanho baseado no preço
+                });
+            }
+            return listings;
         };
 
-        window.makeOffer = () => {
-            const val = document.getElementById('offerVal').value;
-            saveGameState({ offer: { price: val } });
-            advanceStage();
+        window.selectProperty = (index) => {
+            const selectedProperty = currentListings[index];
+            if (selectedProperty.price > gameState.maxOfferPrice) {
+                showModal("Fora do Orçamento", `O imóvel de ${formatCurrency(selectedProperty.price)} está acima do seu orçamento máximo de ${formatCurrency(gameState.maxOfferPrice)}.`);
+                return;
+            }
+            saveGameState({ property: selectedProperty });
+            advanceStage(); // Avança para 2-3 (Seleção/Confirmação)
         };
         
-        // 5. FUNÇÃO PARA SUBMETER SCORE
-        window.submitScore = () => {
-            const nameInput = document.getElementById('player-name');
-            const name = nameInput.value.trim() || "Jogador Anônimo";
+        const processOffer = () => {
+            const offerPrice = parseFloat(document.getElementById('input-offer-price').value);
+            const contingency = document.getElementById('input-contingency').value;
+            const propertyPrice = gameState.property.price;
+            
+            // Lógica de Aceitação Simples:
+            // 1. Se a oferta for >= 98% do preço pedido, é aceita.
+            // 2. Se for entre 95% e 98%, há 50% de chance de aceitação (ou se for oferta 'sem contingência').
+            let accepted = false;
+            if (offerPrice >= propertyPrice * 0.98) {
+                accepted = true;
+            } else if (offerPrice >= propertyPrice * 0.95) {
+                if (contingency === 'none' || Math.random() > 0.5) {
+                    accepted = true;
+                }
+            }
+
+            saveGameState({ offer: { price: offerPrice, contingency: contingency, accepted: accepted } });
+
+            if (accepted) {
+                showModal("Oferta Aceita!", `Parabéns! Sua oferta de ${formatCurrency(offerPrice)} foi aceita. Próxima etapa: Inspeção.`);
+                advanceStage(); // Avança para 3-1 (Inspeção)
+            } else {
+                showModal("Oferta Recusada", "O vendedor recusou sua oferta. Tente aumentar o valor ou remover contingências.");
+                renderCenterContent('2-4'); // Volta para Oferta
+            }
+        };
+
+        const runInspection = () => {
+            // Gera um custo de reparo aleatório (0% a 3% do preço do imóvel)
+            const baseCost = gameState.property.price * (Math.random() * 0.03);
+            return roundToNearest(baseCost, 500); 
+        };
+
+        window.processInspection = (action) => {
+            const inspectionCost = gameState.inspectionIssues;
+
+            if (action === 'negotiate') {
+                // Tenta negociar 50% do custo com o vendedor
+                const sellerCredit = roundToNearest(inspectionCost * 0.5, 100);
+                saveGameState({ offer: { ...gameState.offer, sellerCredit: sellerCredit } });
+                
+                showModal("Negociação", `O vendedor concordou em dar um crédito de ${formatCurrency(sellerCredit)} para os reparos.`);
+            } else {
+                // Aceita o custo total (0 crédito do vendedor)
+                saveGameState({ offer: { ...gameState.offer, sellerCredit: 0 } });
+            }
+            advanceStage(); // Avança para 3-2 (Avaliação)
+        };
+
+        const runAppraisal = () => {
+            // Valor de avaliação tem chance de ser igual ao preço de mercado do imóvel (CMA) ou um pouco abaixo
+            const propertyPrice = gameState.property.price;
+            const marketPrice = gameState.property.marketPrice;
+            
+            if (Math.random() > 0.8) { 
+                // 20% de chance de avaliação vir abaixo
+                const lowAppraisal = roundToNearest(marketPrice * (0.95 + Math.random() * 0.03), 1000); // 95% a 98% do valor de mercado
+                return Math.min(propertyPrice, lowAppraisal); // Garante que não é maior que o preço de venda
+            }
+            return propertyPrice; // Avaliação igual ou acima do preço da oferta
+        };
+
+        window.processLowAppraisal = (difference) => {
+            // O cliente precisa cobrir a diferença do próprio bolso, reduzindo as savings
+            if (gameState.savings >= difference) {
+                saveGameState({ savings: gameState.savings - difference });
+                showModal("Avaliação Resolvida", `A diferença de ${formatCurrency(difference)} foi coberta com a poupança do cliente.`);
+                advanceStage(); // Avança para 3-3 (Fechamento)
+            } else {
+                showModal("Falha na Compra", `O cliente não tem poupança suficiente para cobrir a diferença de ${formatCurrency(difference)} da baixa avaliação. O negócio falhou.`);
+                resetGame();
+            }
+        };
+
+        const calculateClosingCosts = () => {
+            const price = gameState.property.price;
+            const downPayment = gameState.downPaymentPct;
+            const loanAmount = price - downPayment;
+            const sellerCredit = gameState.offer.sellerCredit || 0;
+
+            // Estimativa de Custos de Fechamento (2% a 5% do valor do empréstimo)
+            const feesAndTaxes = roundToNearest(price * 0.03, 500); 
+
+            // Custos de fechamento líquidos
+            const totalToPay = (downPayment + feesAndTaxes) - sellerCredit;
+
+            return {
+                downPayment: downPayment,
+                feesAndTaxes: feesAndTaxes,
+                sellerCredit: sellerCredit,
+                total: totalToPay
+            };
+        };
+
+        window.processClosing = (totalCost) => {
+            if (gameState.savings >= totalCost) {
+                saveGameState({ savings: gameState.savings - totalCost });
+                showModal("Sucesso!", `Transação concluída! Total pago: ${formatCurrency(totalCost)}. O cliente é agora o novo proprietário.`);
+                advanceStage(); // Avança para 3-4 (Chaves!)
+            } else {
+                showModal("Falha no Fechamento", `O cliente não tem ${formatCurrency(totalCost)} em poupança para o fechamento. O negócio falhou.`);
+                resetGame();
+            }
+        };
+
+        window.submitScore = async () => {
+            const playerName = document.getElementById('player-name').value || "Corretor Anônimo";
             const score = gameState.finalScore;
             const time = gameState.endTime - gameState.startTime;
 
             if (score > 0) {
-                saveRanking(name, score, time);
-                showModal("Score Enviado!", `Parabéns, ${name}! Seu score de ${formatCurrency(score)} foi enviado ao ranking.`);
-                resetGame();
-            } else {
-                showModal("Erro", "Score inválido. Tente novamente.");
+                await saveRanking(playerName, score, time);
+                showModal("Sucesso!", `Sua pontuação de ${formatCurrency(score)} foi enviada ao Ranking!`);
+                // Redireciona para o ranking após 2 segundos
+                setTimeout(() => renderCenterContent('ranking'), 2000); 
             }
         };
 
-        // Modal Logic
-        const modal = document.getElementById('modal');
         window.showModal = (title, body) => {
             document.getElementById('modal-title').innerText = title;
-            document.getElementById('modal-body').innerText = body;
-            modal.classList.remove('hidden');
-            modal.classList.add('flex');
+            document.getElementById('modal-body').innerHTML = body;
+            document.getElementById('modal').classList.remove('hidden');
+            document.getElementById('modal').classList.add('flex');
         };
+
         window.hideModal = () => {
-            modal.classList.add('hidden');
-            modal.classList.remove('flex');
+            document.getElementById('modal').classList.add('hidden');
+            document.getElementById('modal').classList.remove('flex');
         };
 
-        // Init
-        renderCenterContent('start');
-        updateUI();
-
+        // --- INIT ---
+        window.onload = () => {
+            updateUI();
+            renderCenterContent('intro');
+        };
     </script>
 </body>
 </html>
