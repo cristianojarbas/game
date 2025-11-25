@@ -1,300 +1,2205 @@
 <!DOCTYPE html>
+
 <html lang="en">
+
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Cristiano Jarbas Real Estate Tycoon</title>
 
-  <!-- Tailwind CDN -->
-  <script src="https://cdn.tailwindcss.com"></script>
+    <meta charset="UTF-8">
 
-  <!-- Inter Font -->
-  <link
-    href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap"
-    rel="stylesheet"
-  />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <style>
-    :root {
-      --color-primary: #1e40ff;
-      --color-secondary: #c8102e;
-      --color-accent: #ffc300;
-    }
+    <title>Cristiano Jarbas Real Estate Tycoon (Game Board)</title>
 
-    body {
-      font-family: "Inter", system-ui, -apple-system, BlinkMacSystemFont,
-        "Segoe UI", sans-serif;
-    }
+    <!-- Load Tailwind CSS -->
 
-    .board-grid {
-      display: grid;
-      grid-template-columns: repeat(5, minmax(0, 1fr));
-      gap: 0.75rem;
-    }
+    <script src="https://cdn.tailwindcss.com"></script>
 
-    .board-tile {
-      border-radius: 0.75rem;
-      border: 1px solid rgba(255, 255, 255, 0.15);
-      background: rgba(15, 23, 42, 0.9);
-      padding: 0.6rem;
-      font-size: 0.7rem;
-      line-height: 1rem;
-    }
-  </style>
+    <!-- Load Inter Font -->
+
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" rel="stylesheet">
+
+    <!-- Load Phosphor Icons for game elements -->
+
+    <script src="https://unpkg.com/phosphor-icons"></script>
+
+    <style>
+
+        /* Based on the logo's colors */
+
+        :root {
+
+            --color-primary: #1E40FF; /* Blue from Logo */
+
+            --color-secondary: #C8102E; /* Red from Logo */
+
+            --color-accent: #FFC300; /* Gold/Yellow for alerts/LLM */
+
+        }
+
+        body {
+
+            font-family: 'Inter', sans-serif;
+
+            background-color: #0d1117; /* Dark background for game board feel */
+
+            color: #f3f4f6;
+
+        }
+
+        .bg-primary { background-color: var(--color-primary); }
+
+        .text-primary { color: var(--color-primary); }
+
+        .bg-secondary { background-color: var(--color-secondary); }
+
+        .text-secondary { color: var(--color-secondary); }
+
+        .bg-accent { background-color: var(--color-accent); }
+
+        .text-accent { color: var(--color-accent); }
+
+
+
+        .card {
+
+            @apply bg-white p-6 md:p-8 rounded-xl shadow-2xl border border-gray-100 text-gray-800;
+
+        }
+
+        .btn-primary {
+
+            @apply px-6 py-3 rounded-xl font-bold transition duration-200 shadow-lg text-white;
+
+            background-color: var(--color-secondary);
+
+        }
+
+        .btn-primary:hover { @apply opacity-90; }
+
+
+
+        .btn-llm {
+
+            @apply px-4 py-2 rounded-xl font-semibold transition duration-200 shadow-md text-sm;
+
+            background-color: var(--color-accent);
+
+            color: var(--color-primary);
+
+        }
+
+        .btn-llm:hover { @apply bg-opacity-90 shadow-lg; }
+
+
+
+        /* --- GAME BOARD STYLES --- */
+
+        .game-board {
+
+            display: grid;
+
+            grid-template-columns: repeat(5, 1fr);
+
+            grid-template-rows: repeat(5, 1fr);
+
+            gap: 10px;
+
+            max-width: 800px;
+
+            aspect-ratio: 1 / 1;
+
+            margin: 20px auto;
+
+            border: 10px solid var(--color-secondary);
+
+            border-radius: 20px;
+
+            background-color: #0d1117;
+
+        }
+
+
+
+        .board-space {
+
+            display: flex;
+
+            flex-direction: column;
+
+            align-items: center;
+
+            justify-content: center;
+
+            padding: 8px;
+
+            border-radius: 12px;
+
+            cursor: pointer;
+
+            transition: transform 0.1s ease, box-shadow 0.2s ease;
+
+            text-align: center;
+
+            font-weight: 600;
+
+            color: white;
+
+            position: relative;
+
+            min-height: 100px;
+
+        }
+
+
+
+        .board-space.disabled {
+
+            opacity: 0.5;
+
+            cursor: not-allowed;
+
+        }
+
+        .board-space:not(.disabled):hover {
+
+            transform: scale(1.05);
+
+            box-shadow: 0 0 15px rgba(255, 255, 255, 0.5);
+
+        }
+
+
+
+        /* Zone 1: Financial Foundation (Green/Blue) */
+
+        .zone-1 { background-color: var(--color-primary); }
+
+        /* Zone 2: House Hunting Highway (Red) */
+
+        .zone-2 { background-color: var(--color-secondary); }
+
+        /* Zone 3: Due Diligence & Closing (Purple/Darker Blue) */
+
+        .zone-3 { background-color: #334155; }
+
+
+
+        /* Specific Space Placement (Monopoly style) */
+
+        .space-start { grid-area: 5 / 5 / 6 / 6; background-color: #10B981; }
+
+        .space-1-1 { grid-area: 5 / 4 / 6 / 5; }
+
+        .space-1-2 { grid-area: 5 / 3 / 6 / 4; }
+
+        .space-1-3 { grid-area: 5 / 2 / 6 / 3; }
+
+        .space-1-4 { grid-area: 5 / 1 / 6 / 2; }
+
+
+
+        .space-2-1 { grid-area: 4 / 1 / 5 / 2; }
+
+        .space-2-2 { grid-area: 3 / 1 / 4 / 2; }
+
+        .space-2-3 { grid-area: 2 / 1 / 3 / 2; }
+
+        .space-2-4 { grid-area: 1 / 1 / 2 / 2; }
+
+
+
+        .space-3-1 { grid-area: 1 / 2 / 2 / 3; }
+
+        .space-3-2 { grid-area: 1 / 3 / 2 / 4; }
+
+        .space-3-3 { grid-area: 1 / 4 / 2 / 5; }
+
+        .space-3-4 { grid-area: 1 / 5 / 2 / 6; }
+
+
+
+        .center-display {
+
+            grid-area: 2 / 2 / 5 / 5;
+
+            background-color: #2c2f33;
+
+            border-radius: 12px;
+
+            padding: 20px;
+
+            overflow-y: auto;
+
+        }
+
+
+
+        .center-content {
+
+            height: 100%;
+
+            display: flex;
+
+            flex-direction: column;
+
+            justify-content: center;
+
+            align-items: center;
+
+        }
+
+
+
+        .stage-active {
+
+            box-shadow: 0 0 15px 5px var(--color-accent);
+
+            border: 3px solid var(--color-accent);
+
+        }
+
+    </style>
+
+
+
+    <!-- Firebase Imports (Keeping structure for context) -->
+
+    <script type="module">
+
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+
+        import { getFirestore, doc, getDoc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        import { setLogLevel } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+
+
+        // IMPORTANT: Use Debug logging for Firestore
+
+        // setLogLevel('debug'); // Commented out for cleaner console
+
+
+
+        window.firebase = {
+
+            initializeApp, getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged,
+
+            getFirestore, doc, getDoc, setDoc, onSnapshot
+
+        };
+
+    </script>
+
 </head>
-<body class="min-h-screen bg-slate-950 text-slate-100 flex items-center justify-center p-4">
-  <div
-    class="w-full max-w-5xl bg-slate-900/80 border border-slate-700 rounded-3xl shadow-2xl shadow-slate-900/70 p-5 md:p-8 space-y-6"
-  >
+
+<body class="min-h-screen">
+
+
+
     <!-- Header -->
-    <header class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-      <div>
-        <h1 class="text-2xl md:text-3xl font-extrabold tracking-tight">
-          Cristiano Jarbas Real Estate Tycoon
-        </h1>
-        <p class="text-sm text-slate-300 mt-1">
-          Turno a turno, você joga como um agente de alto nível em Massachusetts,
-          ajudando compradores e vendedores a vencer o mercado.
-        </p>
-      </div>
-      <div class="flex flex-wrap gap-2">
-        <button
-          id="btn-start"
-          class="px-4 py-2 rounded-full bg-indigo-500 hover:bg-indigo-400 text-sm font-semibold shadow-md shadow-indigo-900 transition"
-        >
-          Start Game
-        </button>
-        <button
-          id="btn-reset"
-          class="px-4 py-2 rounded-full border border-slate-600 text-sm font-semibold hover:bg-slate-800 transition"
-        >
-          Reset
-        </button>
-      </div>
+
+    <header class="bg-gray-800 shadow-lg py-4">
+
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+
+            <h1 class="text-3xl font-black text-secondary flex items-center justify-center">
+
+                <i class="ph ph-house-line mr-2 text-primary"></i> Cristiano Jarbas Real Estate Tycoon
+
+            </h1>
+
+        </div>
+
     </header>
 
-    <!-- Status bar -->
-    <section
-      class="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs md:text-sm bg-slate-900/70 border border-slate-700 rounded-2xl p-3 md:p-4"
-    >
-      <div>
-        <p class="text-slate-400">Stage</p>
-        <p id="stage-label" class="font-semibold text-indigo-300">
-          1 – Lead aparece
-        </p>
-      </div>
-      <div>
-        <p class="text-slate-400">Client type</p>
-        <p id="client-label" class="font-semibold">First-time buyer</p>
-      </div>
-      <div>
-        <p class="text-slate-400">Pipeline</p>
-        <p id="pipeline-label" class="font-semibold">0 deals in progress</p>
-      </div>
-      <div>
-        <p class="text-slate-400">Energy</p>
-        <p id="energy-label" class="font-semibold text-emerald-300">
-          100%
-        </p>
-      </div>
-    </section>
 
-    <!-- Board -->
-    <section class="space-y-3">
-      <h2 class="text-sm font-semibold tracking-wide text-slate-300">
-        Game Board – From “Just Looking” to “Closed & Celebrated”
-      </h2>
 
-      <div class="board-grid">
-        <div class="board-tile">
-          <p class="font-semibold text-indigo-300 mb-1">1. Lead aparece</p>
-          <p>Contato pelo Instagram / Zillow / indicação.</p>
+    <!-- Main Game Board -->
+
+    <main class="max-w-5xl mx-auto p-4 md:p-8">
+
+        <div id="game-status" class="text-center mb-6 text-lg font-semibold text-gray-300">
+
+            Current Market: <span id="market-display" class="text-accent">...</span> | Max Budget: <span id="budget-display" class="text-accent">...</span>
+
         </div>
-        <div class="board-tile">
-          <p class="font-semibold text-indigo-300 mb-1">2. Descoberta</p>
-          <p>Entender objetivos, budget, prazo e motivação real.</p>
+
+        <div class="game-board" id="game-board">
+
+            <!-- Board Spaces (CSS Grid handles placement) -->
+
+            <div id="space-start" class="board-space space-start" onclick="if (!this.classList.contains('disabled')) handleSpaceClick('start')">
+
+                <i class="ph ph-flag-checkered text-4xl mb-1"></i>
+
+                START / Choose Market
+
+            </div>
+
+
+
+            <!-- ZONE 1: FINANCIAL FOUNDATION -->
+
+            <div id="space-1-1" class="board-space zone-1 disabled" onclick="if (!this.classList.contains('disabled')) handleSpaceClick('1-1')">
+
+                <i class="ph ph-money text-3xl mb-1"></i>
+
+                Income & Debts
+
+            </div>
+
+            <div id="space-1-2" class="board-space zone-1 disabled" onclick="if (!this.classList.contains('disabled')) handleSpaceClick('1-2')">
+
+                <i class="ph ph-piggy-bank text-3xl mb-1"></i>
+
+                Savings Surge
+
+            </div>
+
+            <div id="space-1-3" class="board-space zone-1 disabled" onclick="if (!this.classList.contains('disabled')) handleSpaceClick('1-3')">
+
+                <i class="ph ph-percent text-3xl mb-1"></i>
+
+                DP & Loan Type
+
+            </div>
+
+            <div id="space-1-4" class="board-space zone-1 disabled" onclick="if (!this.classList.contains('disabled')) handleSpaceClick('1-4')">
+
+                <i class="ph ph-file-text text-3xl mb-1"></i>
+
+                Pre-Approval (DTI)
+
+            </div>
+
+
+
+            <!-- ZONE 2: HOUSE HUNTING HIGHWAY -->
+
+            <div id="space-2-1" class="board-space zone-2 disabled" onclick="if (!this.classList.contains('disabled')) handleSpaceClick('2-1')">
+
+                <i class="ph ph-magnifying-glass text-3xl mb-1"></i>
+
+                Search Listings
+
+            </div>
+
+            <div id="space-2-2" class="board-space zone-2 disabled" onclick="if (!this.classList.contains('disabled')) handleSpaceClick('2-2')">
+
+                <i class="ph ph-chart-bar text-3xl mb-1"></i>
+
+                Comps Corner
+
+            </div>
+
+            <div id="space-2-3" class="board-space zone-2 disabled" onclick="if (!this.classList.contains('disabled')) handleSpaceClick('2-3')">
+
+                <i class="ph ph-house-line text-3xl mb-1"></i>
+
+                Select Property
+
+            </div>
+
+            <div id="space-2-4" class="board-space zone-2 disabled" onclick="if (!this.classList.contains('disabled')) handleSpaceClick('2-4')">
+
+                <i class="ph ph-pencil-line text-3xl mb-1"></i>
+
+                Make Offer
+
+            </div>
+
+
+
+            <!-- ZONE 3: DUE DILIGENCE & CLOSING -->
+
+            <div id="space-3-1" class="board-space zone-3 disabled" onclick="if (!this.classList.contains('disabled')) handleSpaceClick('3-1')">
+
+                <i class="ph ph-toolbox text-3xl mb-1"></i>
+
+                Inspection Report
+
+            </div>
+
+            <div id="space-3-2" class="board-space zone-3 disabled" onclick="if (!this.classList.contains('disabled')) handleSpaceClick('3-2')">
+
+                <i class="ph ph-bank text-3xl mb-1"></i>
+
+                Appraisal Value
+
+            </div>
+
+            <div id="space-3-3" class="board-space zone-3 disabled" onclick="if (!this.classList.contains('disabled')) handleSpaceClick('3-3')">
+
+                <i class="ph ph-file-pdf text-3xl mb-1"></i>
+
+                Closing Disclosure
+
+            </div>
+
+            <div id="space-3-4" class="board-space zone-3 disabled" onclick="if (!this.classList.contains('disabled')) handleSpaceClick('3-4')">
+
+                <i class="ph ph-key text-3xl mb-1"></i>
+
+                Closing Day!
+
+            </div>
+
+
+
+            <!-- Center Content Area -->
+
+            <div class="center-display">
+
+                <div id="center-content" class="center-content text-center">
+
+                    <h2 class="text-3xl font-black text-secondary mb-4">Welcome to Cristiano Jarbas Real Estate Tycoon!</h2>
+
+                    <p class="text-gray-300">Click the **START** space to begin your journey to homeownership.</p>
+
+                </div>
+
+            </div>
+
         </div>
-        <div class="board-tile">
-          <p class="font-semibold text-indigo-300 mb-1">3. Pré-aprovação</p>
-          <p>Conectar com lender top e organizar documentos.</p>
+
+    </main>
+
+
+
+    <!-- Modal for Interaction/LLM/Alerts -->
+
+    <div id="modal" class="fixed inset-0 bg-gray-900 bg-opacity-70 hidden items-center justify-center p-4 z-50">
+
+        <div class="card w-full max-w-lg">
+
+            <div id="modal-header" class="flex justify-between items-center mb-4">
+
+                <h3 id="modal-title" class="text-xl font-bold text-primary flex items-center">
+
+                    <i class="ph ph-lightbulb mr-2 text-accent"></i> Game Event
+
+                </h3>
+
+                <button onclick="hideModal()" class="text-gray-500 hover:text-gray-700">
+
+                    <i class="ph ph-x text-2xl"></i>
+
+                </button>
+
+            </div>
+
+            <div id="modal-body" class="text-gray-700 leading-relaxed">
+
+                <!-- Content injected here -->
+
+            </div>
+
+            <div id="modal-footer" class="mt-6 flex justify-end">
+
+                <button onclick="hideModal()" class="btn-primary">Got It</button>
+
+            </div>
+
         </div>
-        <div class="board-tile">
-          <p class="font-semibold text-indigo-300 mb-1">4. Tour de casas</p>
-          <p>Visitas estratégicas, sem perder tempo com imóvel errado.</p>
+
+    </div>
+
+
+
+    <!-- JavaScript Game Logic -->
+
+    <script type="module">
+
+        // Import firebase dependencies (window.firebase is defined in head script)
+
+        const { getAuth, setDoc, onSnapshot } = window.firebase;
+
+
+
+        // --- GLOBAL SETUP AND FIREBASE INIT ---
+
+
+
+        let db, auth;
+
+        let userId;
+
+        let authReady = false;
+
+
+
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+
+        const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{}');
+
+
+
+        const getGameDocRef = (uid) => doc(db, `artifacts/${appId}/users/${uid}/real_estate_games/current_game`);
+
+        
+
+        // --- GAME DATA ---
+
+        const PMI_RATE = 0.005; 
+
+        const INSURANCE_COST = 1800; 
+
+        const MAX_DTI = 0.43; 
+
+        
+
+        const initialGameState = {
+
+            stage: 'start', // 'start', '1-1', '1-2', '1-3', '1-4', '2-1', ... '3-4', 'complete'
+
+            market: null, 
+
+            income: 0,
+
+            savings: 0,
+
+            initialDebts: { creditCard: 0, auto: 0, student: 0 },
+
+            currentDebts: { creditCard: 0, auto: 0, student: 0 },
+
+            downPaymentPct: 0.20,
+
+            loanType: 'Conventional',
+
+            maxLoanAmount: 0,
+
+            maxOfferPrice: 0,
+
+            property: null,
+
+            offer: { price: 0, emd: 0, contingencies: { inspection: true, financing: true, appraisal: true } },
+
+            inspectionResult: null, 
+
+            appraisalValue: 0,
+
+            cashToClose: 0
+
+        };
+
+
+
+        const MARKET_SCENARIOS = {
+
+            easy: {
+
+                name: "Starter Suburb", priceRange: [250000, 350000], taxRate: 0.0085, interestRate: 0.0625, volatility: 0.10,
+
+                startSavings: 20000, startIncome: 75000, startDebts: { creditCard: 500, auto: 300, student: 100 }
+
+            },
+
+            medium: {
+
+                name: "Hot Market Metro", priceRange: [400000, 650000], taxRate: 0.0120, interestRate: 0.0650, volatility: 0.20,
+
+                startSavings: 45000, startIncome: 120000, startDebts: { creditCard: 1000, auto: 500, student: 250 }
+
+            },
+
+            hard: {
+
+                name: "High-Cost Coastal", priceRange: [800000, 1200000], taxRate: 0.0065, interestRate: 0.0675, volatility: 0.35,
+
+                startSavings: 90000, startIncome: 200000, startDebts: { creditCard: 1500, auto: 700, student: 500 }
+
+            }
+
+        };
+
+
+
+        let gameState = { ...initialGameState };
+
+        let currentListings = [];
+
+        const stageOrder = ['start', '1-1', '1-2', '1-3', '1-4', '2-1', '2-2', '2-3', '2-4', '3-1', '3-2', '3-3', '3-4', 'complete'];
+
+
+
+
+
+        // --- UTILITY FUNCTIONS ---
+
+        const formatCurrency = (amount) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 0 }).format(amount);
+
+        const formatPercent = (value) => (value * 100).toFixed(1) + '%';
+
+        const roundToNearest = (value, nearest) => Math.round(value / nearest) * nearest;
+
+        const calculateMandI = (principal, annualRate, years) => {
+
+            const r = annualRate / 12;
+
+            const n = years * 12;
+
+            if (r === 0) return principal / n;
+
+            return principal * (r * Math.pow(1 + r, n)) / (Math.pow(1 + r, n) - 1);
+
+        };
+
+        const getNextStage = (currentStage) => {
+
+            const currentIndex = stageOrder.indexOf(currentStage);
+
+            if (currentIndex < stageOrder.length - 1) {
+
+                return stageOrder[currentIndex + 1];
+
+            }
+
+            return 'complete';
+
+        };
+
+
+
+        // --- GEMINI API CALL UTILITY (Retained from previous step) ---
+
+
+
+        const GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=";
+
+        const apiKey = ""; // Canvas will provide this
+
+
+
+        const callGeminiApi = async (userQuery, systemPrompt, useGrounding = false) => {
+
+            const payload = {
+
+                contents: [{ parts: [{ text: userQuery }] }],
+
+                systemInstruction: { parts: [{ text: systemPrompt }] },
+
+                ...(useGrounding && { tools: [{ "google_search": {} }] })
+
+            };
+
+
+
+            const maxRetries = 5;
+
+            for (let attempt = 0; attempt < maxRetries; attempt++) {
+
+                try {
+
+                    const response = await fetch(GEMINI_API_URL + apiKey, {
+
+                        method: 'POST',
+
+                        headers: { 'Content-Type': 'application/json' },
+
+                        body: JSON.stringify(payload)
+
+                    });
+
+
+
+                    if (!response.ok) {
+
+                        if (response.status === 429 && attempt < maxRetries - 1) {
+
+                            const delay = Math.pow(2, attempt) * 1000 + Math.random() * 1000;
+
+                            await new Promise(resolve => setTimeout(resolve, delay));
+
+                            continue;
+
+                        }
+
+                        throw new Error(`API call failed with status: ${response.status}`);
+
+                    }
+
+
+
+                    const result = await response.json();
+
+                    const candidate = result.candidates?.[0];
+
+
+
+                    if (candidate && candidate.content?.parts?.[0]?.text) {
+
+                        return candidate.content.parts[0].text;
+
+                    } else {
+
+                        throw new Error("Invalid response structure from Gemini API.");
+
+                    }
+
+
+
+                } catch (error) {
+
+                    if (attempt === maxRetries - 1) {
+
+                        console.error("Gemini API max retries reached.", error);
+
+                        throw new Error("Failed to get advice from the AI advisor. Please try again later.");
+
+                    }
+
+                }
+
+            }
+
+        };
+
+
+
+        // --- LLM FEATURES ---
+
+
+
+        const showLoadingModal = (title) => {
+
+            showModal(title, `
+
+                <div class="flex flex-col items-center py-6">
+
+                    <svg class="animate-spin -ml-1 mr-3 h-8 w-8 text-secondary" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+
+                    </svg>
+
+                    <p class="mt-3 text-lg font-semibold text-primary">Calculating personalized strategy...</p>
+
+                </div>
+
+            `);
+
+        };
+
+
+
+        const generateFinancialStrategy = async () => {
+
+            showLoadingModal("✨ Optimizing Financial Strategy");
+
+
+
+            const currentTotalDebt = Object.values(gameState.currentDebts).reduce((a, b) => a + b, 0);
+
+            const savings = gameState.savings;
+
+            const marketName = MARKET_SCENARIOS[gameState.market].name;
+
+
+
+            const userQuery = `I am trying to qualify for a mortgage. My gross monthly income is ${formatCurrency(gameState.income)}. My current monthly debt payments are ${formatCurrency(currentTotalDebt)}. My current savings are ${formatCurrency(savings)}. I am shopping in a ${marketName} market. Provide a concise, 3-point strategy on how to optimize my DTI, savings, and down payment percentage to maximize my loan approval chances. Use strong Markdown formatting.`;
+
+            const systemPrompt = "You are Cristiano Jarbas, a world-class real estate mogul and financial coach. You must provide clear, actionable, and encouraging advice to first-time home buyers. Your response must be structured as three numbered bullet points.";
+
+
+
+            try {
+
+                const result = await callGeminiApi(userQuery, systemPrompt, false);
+
+                showModal("✨ Your 3-Point Financial Strategy", `<div class="p-2 text-base">${result}</div>`);
+
+            } catch (e) {
+
+                showModal("API Error", `<p class="text-red-600">${e.message}</p>`);
+
+            }
+
+        };
+
+
+
+        const generateNegotiationScript = async (criticalIssues) => {
+
+            showLoadingModal("✨ Drafting Negotiation Script");
+
+
+
+            const issuesList = criticalIssues.join(', ');
+
+            const totalCreditRequest = formatCurrency(criticalIssues.length * 5000); 
+
+
+
+            const userQuery = `I am a buyer under contract for a home. The inspection found these critical issues: ${issuesList}. I need to ask the seller for a closing credit of about ${totalCreditRequest} to cover these repairs. Draft a concise, professional email script for my agent to send to the seller's agent, focusing on the foundation of the deal while firmly requesting the credit due to these safety/structural concerns.`;
+
+            const systemPrompt = "You are a professional transaction coordinator. Your task is to generate a formal and polite negotiation email template that an agent can send, emphasizing a positive relationship while requesting compensation for critical defects found during the inspection period. The output should be the email body only, using professional language.";
+
+
+
+            try {
+
+                const result = await callGeminiApi(userQuery, systemPrompt, false);
+
+                showModal("✨ Negotiation Script for Agent", `
+
+                    <p class="font-bold text-secondary mb-3">Use this script to ask for a closing credit to cover the issues:</p>
+
+                    <div class="bg-gray-100 p-4 rounded-xl whitespace-pre-wrap text-sm border border-gray-300">
+
+                        ${result}
+
+                    </div>
+
+                    <p class="mt-4 text-xs text-gray-500">Note: The system estimated the credit request. Your agent (you) should determine the final amount.</p>
+
+                `);
+
+            } catch (e) {
+
+                showModal("API Error", `<p class="text-red-600">${e.message}</p>`);
+
+            }
+
+        };
+
+
+
+        // --- UI / GAME BOARD MANAGEMENT ---
+
+
+
+        const updateBoardState = (currentStage) => {
+
+            document.querySelectorAll('.board-space').forEach(space => {
+
+                space.classList.add('disabled');
+
+                space.classList.remove('stage-active');
+
+            });
+
+
+
+            if (currentStage === 'complete') {
+
+                 // Nothing is active
+
+            } else if (currentStage === 'start') {
+
+                document.getElementById('space-start').classList.remove('disabled');
+
+            } else {
+
+                const currentIndex = stageOrder.indexOf(currentStage);
+
+                const nextIndex = currentIndex + 1;
+
+                
+
+                // Highlight the current space
+
+                document.getElementById(`space-${currentStage}`).classList.add('stage-active');
+
+                
+
+                // Enable the current space and the next space
+
+                document.getElementById(`space-${currentStage}`).classList.remove('disabled');
+
+                if (nextIndex < stageOrder.length - 1) {
+
+                    const nextStageId = stageOrder[nextIndex];
+
+                    document.getElementById(`space-${nextStageId}`).classList.remove('disabled');
+
+                }
+
+            }
+
+        };
+
+
+
+        const updateHeaderDisplay = () => {
+
+            document.getElementById('market-display').textContent = gameState.market ? MARKET_SCENARIOS[gameState.market].name : 'N/A';
+
+            document.getElementById('budget-display').textContent = gameState.maxOfferPrice > 0 ? formatCurrency(gameState.maxOfferPrice) : 'N/A';
+
+        };
+
+
+
+        const handleSpaceClick = (stageId) => {
+
+            if (stageId !== gameState.stage && stageId !== getNextStage(gameState.stage)) {
+
+                showModal('Wait Your Turn', 'You must complete the current step before advancing!');
+
+                return;
+
+            }
+
+
+
+            // Move to the clicked stage if it is the immediate next step
+
+            if (stageId === getNextStage(gameState.stage)) {
+
+                saveGameState({ stage: stageId });
+
+            }
+
+            
+
+            renderCenterContent(stageId);
+
+        };
+
+        window.handleSpaceClick = handleSpaceClick;
+
+
+
+        const renderCenterContent = (stageId) => {
+
+            const contentDiv = document.getElementById('center-content');
+
+            let html = '';
+
+
+
+            switch (stageId) {
+
+                case 'start':
+
+                    html = renderWelcomeScreen();
+
+                    break;
+
+                case '1-1': // Income & Debts
+
+                    html = renderFinancialAudit();
+
+                    break;
+
+                case '1-2': // Savings Surge
+
+                    html = renderSavingsAndDTI();
+
+                    break;
+
+                case '1-3': // DP & Loan Type
+
+                    html = renderLoanStrategy();
+
+                    break;
+
+                case '1-4': // Pre-Approval (DTI)
+
+                    html = renderPreApproval();
+
+                    break;
+
+                case '2-1': // Search Listings
+
+                    currentListings = generateListings(gameState.maxOfferPrice);
+
+                    html = renderListingSearch();
+
+                    break;
+
+                case '2-2': // Comps Corner
+
+                    html = renderCompsCorner();
+
+                    break;
+
+                case '2-3': // Select Property
+
+                    html = renderPropertySelection();
+
+                    break;
+
+                case '2-4': // Make Offer
+
+                    html = renderOfferBuilder();
+
+                    break;
+
+                case '3-1': // Inspection Report
+
+                    html = renderInspectionReport();
+
+                    break;
+
+                case '3-2': // Appraisal Value
+
+                    html = renderAppraisal();
+
+                    break;
+
+                case '3-3': // Closing Disclosure
+
+                    html = renderClosingDisclosure();
+
+                    break;
+
+                case '3-4': // Closing Day!
+
+                    html = renderClosingDay();
+
+                    break;
+
+                case 'complete':
+
+                    html = renderCompletionScreen();
+
+                    break;
+
+                default:
+
+                    html = `<h3 class="text-2xl text-red-500">Error: Invalid Stage</h3>`;
+
+            }
+
+
+
+            contentDiv.innerHTML = html;
+
+        };
+
+        window.renderCenterContent = renderCenterContent;
+
+        
+
+        // Helper function to advance the game
+
+        const advanceStage = (data = {}) => {
+
+            const nextStage = getNextStage(gameState.stage);
+
+            saveGameState({ stage: nextStage, ...data });
+
+            renderCenterContent(nextStage);
+
+        };
+
+        window.advanceStage = advanceStage;
+
+
+
+
+
+        // --- RENDER FUNCTIONS FOR CENTER CONTENT (Adaptation of previous logic) ---
+
+
+
+        const renderWelcomeScreen = () => {
+
+            if (gameState.market) {
+
+                return `
+
+                    <h2 class="text-2xl font-bold text-secondary">Welcome Back!</h2>
+
+                    <p class="text-lg text-gray-300 my-4">You are currently in the **${MARKET_SCENARIOS[gameState.market].name}** market. Click **${document.getElementById('space-1-1').textContent.trim()}** to continue.</p>
+
+                    <button onclick="saveGameState({stage: '1-1'})" class="btn-primary">Continue to Financial Audit</button>
+
+                    <button onclick="resetGame()" class="text-sm text-gray-400 mt-4 block mx-auto hover:text-red-500">Start New Game</button>
+
+                `;
+
+            }
+
+
+
+            return `
+
+                <h2 class="text-2xl font-bold text-secondary mb-4">Select Your Market Scenario</h2>
+
+                <p class="text-gray-300 mb-6">Choose your challenge level to begin your journey.</p>
+
+                
+
+                <div class="space-y-4">
+
+                    ${Object.entries(MARKET_SCENARIOS).map(([key, data]) => `
+
+                        <div class="p-3 border-2 border-gray-600 rounded-lg hover:border-accent transition duration-150 cursor-pointer text-left text-gray-200" onclick="selectMarket('${key}', ${data.startSavings}, ${data.startIncome}, ${data.startDebts.creditCard}, ${data.startDebts.auto}, ${data.startDebts.student})">
+
+                            <div>
+
+                                <h3 class="text-xl font-bold text-accent">${data.name}</h3>
+
+                                <p class="text-sm">Price Range: ${formatCurrency(data.priceRange[0])} - ${formatCurrency(data.priceRange[1])}</p>
+
+                                <p class="text-sm">Competition: ${key.charAt(0).toUpperCase() + key.slice(1)}</p>
+
+                            </div>
+
+                        </div>
+
+                    `).join('')}
+
+                </div>
+
+            `;
+
+        };
+
+
+
+        const selectMarket = (marketKey, savings, income, cc, auto, student) => {
+
+            const debts = { creditCard: cc, auto: auto, student: student };
+
+            saveGameState({
+
+                stage: '1-1',
+
+                market: marketKey,
+
+                savings: savings,
+
+                income: income / 12, 
+
+                initialDebts: debts,
+
+                currentDebts: debts,
+
+                maxLoanAmount: 0,
+
+            });
+
+            renderCenterContent('1-1'); // Immediately render the next step
+
+        };
+
+        window.selectMarket = selectMarket;
+
+        window.payDownDebt = (key, amount) => {
+
+            if (gameState.currentDebts[key] > 0 && gameState.savings >= amount) {
+
+                const newDebts = { ...gameState.currentDebts, [key]: 0 };
+
+                const newSavings = gameState.savings - amount;
+
+                saveGameState({ currentDebts: newDebts, savings: newSavings });
+
+                renderCenterContent('1-2'); // Re-render the DTI analysis space
+
+            } else {
+
+                showModal('Cannot Pay Down', `You do not have enough savings (${formatCurrency(gameState.savings)}) to pay down this debt (${formatCurrency(amount)}).`);
+
+            }
+
+        };
+
+
+
+        const renderFinancialAudit = () => {
+
+            const annualIncome = gameState.income * 12;
+
+            return `
+
+                <h3 class="text-xl font-bold text-primary">Financial Snapshot</h3>
+
+                <p class="text-gray-300 mb-4">Your foundation for pre-approval.</p>
+
+                <div class="bg-gray-700 p-4 rounded-lg space-y-2 text-left">
+
+                    <p>Gross Monthly Income: <span class="font-bold">${formatCurrency(gameState.income)}</span></p>
+
+                    <p>Total Annual Income: <span class="font-bold">${formatCurrency(annualIncome)}</span></p>
+
+                    <p>Current Savings: <span class="font-bold text-accent">${formatCurrency(gameState.savings)}</span></p>
+
+                </div>
+
+                <p class="text-sm text-gray-400 mt-4">Advance to **Savings Surge** to manage debt and view DTI.</p>
+
+                <button onclick="advanceStage()" class="btn-primary mt-4">Next Step</button>
+
+            `;
+
+        };
+
+
+
+        const renderSavingsAndDTI = () => {
+
+            const marketData = MARKET_SCENARIOS[gameState.market];
+
+            const currentTotalDebt = Object.values(gameState.currentDebts).reduce((a, b) => a + b, 0);
+
+            const dti = (currentTotalDebt / gameState.income).toFixed(3);
+
+            const isDTIok = dti <= MAX_DTI;
+
+
+
+            return `
+
+                <h3 class="text-xl font-bold text-primary mb-3">Debt-to-Income (DTI) Analyzer</h3>
+
+                <button onclick="generateFinancialStrategy()" class="btn-llm mb-4">
+
+                    ✨ Optimize My Strategy
+
+                </button>
+
+                <p class="text-gray-300 mb-2">Current DTI: <span class="font-bold text-lg ${isDTIok ? 'text-secondary' : 'text-red-500'}">${formatPercent(dti)}</span> (Target: ${formatPercent(MAX_DTI)})</p>
+
+
+
+                <div class="space-y-3 mt-4 text-left">
+
+                    ${Object.entries(gameState.currentDebts).map(([key, debt]) => `
+
+                        <div class="flex justify-between items-center bg-gray-700 p-3 rounded-lg">
+
+                            <span class="text-sm">${key.charAt(0).toUpperCase() + key.slice(1)} Debt: ${formatCurrency(debt)}</span>
+
+                            <button onclick="payDownDebt('${key}', ${marketData.startDebts[key]})" class="text-xs font-semibold text-accent hover:text-white transition disabled:opacity-50" ${debt === 0 ? 'disabled' : ''}>
+
+                                Pay Down
+
+                            </button>
+
+                        </div>
+
+                    `).join('')}
+
+                </div>
+
+                <button onclick="advanceStage()" class="btn-primary mt-6" ${!isDTIok ? 'disabled' : ''}>
+
+                    ${isDTIok ? 'Proceed to Loan Strategy' : 'DTI Must be Below 43%'}
+
+                </button>
+
+            `;
+
+        };
+
+
+
+        const renderLoanStrategy = () => {
+
+            const currentDP = gameState.downPaymentPct;
+
+            return `
+
+                <h3 class="text-xl font-bold text-primary mb-4">Loan Strategy: Down Payment & Type</h3>
+
+                <div class="text-left text-gray-200 space-y-4">
+
+                    <p>Current Savings: <span class="font-bold text-accent">${formatCurrency(gameState.savings)}</span></p>
+
+
+
+                    <label class="block font-semibold">Down Payment (%)</label>
+
+                    <select id="dp-select" onchange="updateDP(this.value)" class="w-full p-2 border rounded-lg bg-gray-700 text-white">
+
+                        <option value="0.05" ${currentDP === 0.05 ? 'selected' : ''}>5%</option>
+
+                        <option value="0.10" ${currentDP === 0.10 ? 'selected' : ''}>10%</option>
+
+                        <option value="0.20" ${currentDP === 0.20 ? 'selected' : ''}>20% (Avoids PMI!)</option>
+
+                    </select>
+
+
+
+                    <label class="block font-semibold">Loan Type</label>
+
+                    <select id="loan-select" onchange="updateLoanType(this.value)" class="w-full p-2 border rounded-lg bg-gray-700 text-white">
+
+                        <option value="Conventional" ${gameState.loanType === 'Conventional' ? 'selected' : ''}>Conventional</option>
+
+                        <option value="FHA" ${gameState.loanType === 'FHA' ? 'selected' : ''}>FHA (3.5% min, but using 5% for simplicity)</option>
+
+                    </select>
+
+                </div>
+
+                <button onclick="advanceStage()" class="btn-primary mt-6">Next: Final Pre-Approval</button>
+
+            `;
+
+        };
+
+        const updateDP = (pct) => saveGameState({ downPaymentPct: parseFloat(pct) });
+
+        const updateLoanType = (type) => saveGameState({ loanType: type });
+
+        window.updateDP = updateDP;
+
+        window.updateLoanType = updateLoanType;
+
+        
+
+        const renderPreApproval = () => {
+
+            const currentTotalDebt = Object.values(gameState.currentDebts).reduce((a, b) => a + b, 0);
+
+            const dti = (currentTotalDebt / gameState.income).toFixed(3);
+
+            const isDTIok = dti <= MAX_DTI;
+
+
+
+            if (!isDTIok) {
+
+                 return `<h3 class="text-2xl font-bold text-red-500">DTI Failure!</h3><p class="text-gray-300">Your DTI is too high. Return to **Savings Surge** to pay down debt.</p><button onclick="renderCenterContent('1-2')" class="btn-primary mt-4">Go Back to DTI</button>`;
+
+            }
+
+
+
+            const maxPITI = gameState.income * MAX_DTI;
+
+            const maxMandI = maxPITI - currentTotalDebt - (INSURANCE_COST / 12);
+
+            
+
+            const marketData = MARKET_SCENARIOS[gameState.market];
+
+            const interestRate = marketData.interestRate;
+
+            const dp = gameState.downPaymentPct;
+
+
+
+            const r = interestRate / 12;
+
+            const n = 360; 
+
+            let maxLoanAmount = maxMandI * (Math.pow(1 + r, n) - 1) / (r * Math.pow(1 + r, n));
+
+            
+
+            if (maxLoanAmount <= 50000) {
+
+                 showModal('Loan Denied', 'Your financial profile only allows a very small loan. Try paying down more debt or increasing your simulated income next time!');
+
+                 return `<h3 class="text-2xl font-bold text-red-500">Loan Denied!</h3><p class="text-gray-300">Loan amount too low. Restart or pay down debt.</p><button onclick="resetGame()" class="btn-primary mt-4 bg-red-600">Restart Game</button>`;
+
+            }
+
+
+
+            const maxOfferPrice = roundToNearest(maxLoanAmount / (1 - dp), 1000);
+
+            maxLoanAmount = roundToNearest(maxOfferPrice * (1 - dp), 1000);
+
+            
+
+            saveGameState({ maxLoanAmount: maxLoanAmount, maxOfferPrice: maxOfferPrice }); // Update state immediately
+
+
+
+            return `
+
+                <h3 class="text-2xl font-bold text-secondary mb-4">PRE-APPROVED!</h3>
+
+                <p class="text-gray-300">Max Loan Amount: <span class="font-black text-accent">${formatCurrency(maxLoanAmount)}</span></p>
+
+                <p class="text-gray-300">Max Offer Price: <span class="font-black text-3xl text-accent">${formatCurrency(maxOfferPrice)}</span></p>
+
+                <p class="text-sm text-gray-400 mt-4">With your ${formatPercent(dp)} down payment, you're ready to shop. Click **Search Listings** to continue!</p>
+
+                <button onclick="advanceStage()" class="btn-primary mt-6">Start House Hunting</button>
+
+            `;
+
+        };
+
+        // Expose helper to prevent linter errors when using in HTML strings
+
+        window.calculatePreApproval = () => renderCenterContent('1-4');
+
+
+
+
+
+        // --- STAGE 2: HOUSE HUNTING ---
+
+        
+
+        const generateListings = (maxPrice) => {
+
+            const listings = [];
+
+            const marketData = MARKET_SCENARIOS[gameState.market];
+
+            const [min, max] = marketData.priceRange;
+
+
+
+            for (let i = 0; i < 5; i++) {
+
+                let price = roundToNearest(Math.random() * (max - min) + min, 5000);
+
+                price = Math.min(price, maxPrice * 1.05); 
+
+
+
+                const loanAmt = price * (1 - gameState.downPaymentPct);
+
+                const pmi = (gameState.downPaymentPct < 0.20) ? loanAmt * PMI_RATE / 12 : 0;
+
+                const taxes = price * marketData.taxRate / 12;
+
+                const insurance = INSURANCE_COST / 12;
+
+                const mandI = calculateMandI(loanAmt, marketData.interestRate, 30);
+
+                const piti = mandI + taxes + insurance + pmi;
+
+
+
+                listings.push({
+
+                    id: `prop${i + 1}`,
+
+                    price: price,
+
+                    beds: Math.floor(Math.random() * 3) + 2,
+
+                    baths: (Math.floor(Math.random() * 2) + 1) + (Math.random() > 0.5 ? 0.5 : 0),
+
+                    sqft: roundToNearest(Math.random() * 1000 + 1500, 50),
+
+                    piti: piti,
+
+                    taxes: taxes,
+
+                    condition: Math.random() > 0.7 ? 'Excellent' : (Math.random() > 0.5 ? 'Good' : 'Needs Work'),
+
+                    redFlags: Math.floor(Math.random() * 4) + 1, 
+
+                });
+
+            }
+
+            return listings.filter(l => l.price <= maxPrice * 1.05);
+
+        };
+
+
+
+        const renderListingSearch = () => {
+
+            return `
+
+                <h3 class="text-xl font-bold text-primary mb-4">Search Listings</h3>
+
+                <p class="text-gray-300 mb-4">Here are 5 potential homes. Your max budget is <span class="font-bold text-accent">${formatCurrency(gameState.maxOfferPrice)}</span>.</p>
+
+                
+
+                <div class="max-h-60 overflow-y-auto space-y-3 p-2 bg-gray-700 rounded-lg">
+
+                    ${currentListings.map(l => `
+
+                        <div class="bg-gray-800 p-3 rounded-lg flex justify-between items-center text-left">
+
+                            <div>
+
+                                <h4 class="font-bold text-secondary">${formatCurrency(l.price)}</h4>
+
+                                <p class="text-xs text-gray-400">${l.beds} bed / ${l.sqft} sqft</p>
+
+                            </div>
+
+                            <button onclick="advanceStage()" class="text-sm text-accent font-semibold">View Details & Comps</button>
+
+                        </div>
+
+                    `).join('')}
+
+                </div>
+
+                <button onclick="advanceStage()" class="btn-primary mt-6">Next: Comps Corner</button>
+
+            `;
+
+        };
+
+
+
+        const renderCompsCorner = () => {
+
+            return `
+
+                <h3 class="text-xl font-bold text-primary mb-4">Comps Corner (Market Analysis)</h3>
+
+                <p class="text-gray-300 mb-4">Analyze the 5 potential properties you found. Click **Select Property** when you find your favorite.</p>
+
+                <div class="max-h-60 overflow-y-auto space-y-3 p-2 bg-gray-700 rounded-lg">
+
+                    ${currentListings.map(l => `
+
+                        <div class="bg-gray-800 p-3 rounded-lg flex justify-between items-center text-left">
+
+                            <div>
+
+                                <h4 class="font-bold text-secondary">${formatCurrency(l.price)}</h4>
+
+                                <p class="text-xs text-gray-400">PITI: ${formatCurrency(l.piti)} | Condition: ${l.condition}</p>
+
+                            </div>
+
+                            <button onclick="selectProperty('${l.id}')" class="text-sm text-accent font-semibold">Select</button>
+
+                        </div>
+
+                    `).join('')}
+
+                </div>
+
+                <button onclick="advanceStage()" class="btn-primary mt-6">Next: Property Selection</button>
+
+            `;
+
+        };
+
+
+
+        const selectProperty = (id) => {
+
+            const property = currentListings.find(l => l.id === id);
+
+            if (!property) return;
+
+            
+
+            const inspection = { critical: [], nonCritical: [] };
+
+            for(let i = 0; i < property.redFlags; i++) {
+
+                inspection.critical.push(`CRITICAL: Foundation/Roof issue requiring ${formatCurrency(roundToNearest(Math.random() * 15000 + 5000, 100))}`);
+
+            }
+
+            inspection.nonCritical.push(`NON-CRITICAL: Loose faucet in bathroom.`);
+
+            
+
+            saveGameState({ property, inspectionResult: inspection });
+
+            renderCenterContent('2-3'); // Re-render the selection space
+
+        };
+
+        window.selectProperty = selectProperty;
+
+
+
+        const renderPropertySelection = () => {
+
+            if (!gameState.property) {
+
+                return `<h3 class="text-xl text-yellow-500">No Property Selected.</h3><p class="text-gray-300">Go back to **Comps Corner** to select a listing.</p><button onclick="renderCenterContent('2-2')" class="btn-primary mt-4">Go Back</button>`;
+
+            }
+
+            const prop = gameState.property;
+
+            const dpAmount = prop.price * gameState.downPaymentPct;
+
+
+
+            return `
+
+                <h3 class="text-xl font-bold text-primary">Selected Home: ${formatCurrency(prop.price)}</h3>
+
+                <div class="bg-gray-700 p-4 rounded-lg space-y-2 my-4 text-left">
+
+                    <p>Est. PITI: <span class="font-bold text-secondary">${formatCurrency(prop.piti)}</span></p>
+
+                    <p>Est. Down Payment (${formatPercent(gameState.downPaymentPct)}): <span class="font-bold">${formatCurrency(dpAmount)}</span></p>
+
+                    <p>Condition: <span class="font-bold text-accent">${prop.condition}</span></p>
+
+                </div>
+
+                <p class="text-sm text-gray-400">Click **Make Offer** to finalize your bid.</p>
+
+                <button onclick="advanceStage()" class="btn-primary mt-6">Next: Make Offer</button>
+
+            `;
+
+        };
+
+
+
+        const renderOfferBuilder = () => {
+
+            if (!gameState.property) return `<h3 class="text-xl text-red-500">Error: No Property Data</h3>`;
+
+            const prop = gameState.property;
+
+
+
+            return `
+
+                <h3 class="text-xl font-bold text-primary">Crafting Offer on ${formatCurrency(prop.price)}</h3>
+
+                <div class="text-left text-gray-200 space-y-4 pt-4">
+
+                    <label class="block font-semibold">Offer Price (Max ${formatCurrency(gameState.maxOfferPrice)})</label>
+
+                    <input type="number" id="offer-price" value="${prop.price}" min="${prop.price * 0.9}" max="${gameState.maxOfferPrice}" class="w-full p-2 border rounded-lg bg-gray-700 text-white">
+
+
+
+                    <label class="block font-semibold">Earnest Money Deposit (EMD)</label>
+
+                    <input type="number" id="emd-amount" value="5000" min="1000" step="1000" class="w-full p-2 border rounded-lg bg-gray-700 text-white">
+
+
+
+                    <p class="font-semibold pt-2">Contingencies:</p>
+
+                    <div class="space-y-1 text-sm">
+
+                        <label class="flex items-center space-x-2"><input type="checkbox" id="cont-inspection" checked class="form-checkbox text-secondary rounded"><span>Inspection</span></label>
+
+                        <label class="flex items-center space-x-2"><input type="checkbox" id="cont-financing" checked class="form-checkbox text-secondary rounded"><span>Financing</span></label>
+
+                        <label class="flex items-center space-x-2"><input type="checkbox" id="cont-appraisal" checked class="form-checkbox text-secondary rounded"><span>Appraisal</span></label>
+
+                    </div>
+
+                </div>
+
+                <button onclick="submitOffer()" class="btn-primary w-full mt-6">Submit Offer</button>
+
+            `;
+
+        };
+
+        window.renderOfferBuilder = renderOfferBuilder; 
+
+        
+
+        const submitOffer = () => {
+
+            const offerPrice = parseInt(document.getElementById('offer-price').value);
+
+            const emd = parseInt(document.getElementById('emd-amount').value);
+
+            const contingencies = {
+
+                inspection: document.getElementById('cont-inspection').checked,
+
+                financing: document.getElementById('cont-financing').checked,
+
+                appraisal: document.getElementById('cont-appraisal').checked,
+
+            };
+
+
+
+            if (offerPrice > gameState.maxOfferPrice) {
+
+                showModal('Offer Too High!', `Your offer of ${formatCurrency(offerPrice)} exceeds your max pre-approved amount of ${formatCurrency(gameState.maxOfferPrice)}.`);
+
+                return;
+
+            }
+
+
+
+            const marketData = MARKET_SCENARIOS[gameState.market];
+
+            let acceptanceChance = 0.5 + (emd / 10000) * 0.2; 
+
+            if (offerPrice >= gameState.property.price * 1.05) acceptanceChance += marketData.volatility;
+
+            if (!contingencies.appraisal || !contingencies.inspection) acceptanceChance += 0.15;
+
+
+
+            if (Math.random() < acceptanceChance) {
+
+                showModal('OFFER ACCEPTED!', `<p>Your offer of **${formatCurrency(offerPrice)}** has been accepted! Click **Inspection Report** to start due diligence.</p>`);
+
+                advanceStage({ offer: { price: offerPrice, emd, contingencies } });
+
+            } else {
+
+                showModal('Offer Rejected', `<p>Unfortunately, your offer was rejected. Try increasing your price or reducing contingencies.</p>`);
+
+                renderCenterContent('2-4'); 
+
+            }
+
+        };
+
+        window.submitOffer = submitOffer;
+
+
+
+
+
+        // --- STAGE 3: DUE DILIGENCE & CLOSING ---
+
+
+
+        const renderInspectionReport = () => {
+
+            const criticalIssues = gameState.inspectionResult.critical;
+
+            return `
+
+                <h3 class="text-xl font-bold text-red-500 mb-3">Inspection Report: CRITICAL DEFECTS</h3>
+
+                <button onclick="generateNegotiationScript(${JSON.stringify(criticalIssues)})" class="btn-llm mb-4">
+
+                    ✨ Draft Negotiation Script
+
+                </button>
+
+                <div class="max-h-40 overflow-y-auto bg-gray-700 p-3 rounded-lg text-left text-gray-200 space-y-1">
+
+                    ${criticalIssues.map(issue => `<p class="text-sm font-semibold text-red-300">- ${issue}</p>`).join('')}
+
+                    <p class="text-xs text-gray-400 pt-2">...and other non-critical items found.</p>
+
+                </div>
+
+
+
+                <p class="font-bold text-gray-300 mt-4">Negotiation Decision:</p>
+
+                <button onclick="handleNegotiation('credit')" class="btn-primary mr-3 bg-blue-600 hover:bg-blue-700 text-sm">Request Closing Credit</button>
+
+                <button onclick="handleNegotiation('accept')" class="btn-primary bg-secondary text-sm">Accept As-Is</button>
+
+                <button onclick="handleNegotiation('walk')" class="btn-primary bg-red-600 hover:bg-red-700 mt-4 text-sm">Walk Away (Lose EMD)</button>
+
+            `;
+
+        };
+
+        window.handleNegotiation = (action) => {
+
+            if (action === 'walk') {
+
+                const newSavings = gameState.savings - gameState.offer.emd;
+
+                showModal('Contract Cancelled', `You walked away and lost your **EMD** of ${formatCurrency(gameState.offer.emd)}.`);
+
+                saveGameState({ stage: '2-1', savings: newSavings, property: null, offer: null });
+
+                return;
+
+            }
+
+
+
+            const sellerAgrees = Math.random() > 0.3;
+
+
+
+            if (sellerAgrees || action === 'accept') {
+
+                let message = "Contingency Cleared! The seller accepted your terms.";
+
+                let newSavings = gameState.savings;
+
+                if (action === 'credit') {
+
+                    const creditAmount = roundToNearest(Math.random() * 5000 + 2000, 100);
+
+                    newSavings += creditAmount;
+
+                    message = `The seller granted a **${formatCurrency(creditAmount)} closing credit**. Savings updated!`;
+
+                }
+
+
+
+                showModal('Inspection Cleared', message);
+
+                advanceStage({ savings: newSavings, closingSubStage: 'appraisal' });
+
+            } else {
+
+                 showModal('Negotiation Failed', 'The seller is unwilling to budge. You must accept as-is or walk away.',
+
+                    `<button onclick="hideModal(); handleNegotiation('accept')" class="btn-primary mr-3 text-sm">Accept As-Is</button>
+
+                     <button onclick="hideModal(); handleNegotiation('walk')" class="btn-primary bg-red-600 text-sm">Walk Away</button>`);
+
+            }
+
+        };
+
+
+
+
+
+        const renderAppraisal = () => {
+
+            const appraisalBase = gameState.property.price * 0.95;
+
+            const appraisalVariance = gameState.property.price * MARKET_SCENARIOS[gameState.market].volatility;
+
+            const finalAppraisal = roundToNearest(Math.random() * appraisalVariance + appraisalBase, 1000);
+
+            const gap = gameState.offer.price - finalAppraisal;
+
+            
+
+            saveGameState({ appraisalValue: finalAppraisal }); 
+
+            
+
+            let html;
+
+            if (gap <= 0) {
+
+                html = `<h3 class="text-2xl font-bold text-secondary mb-4">Appraisal Success!</h3>
+
+                        <p class="text-gray-300">Appraisal Value: **${formatCurrency(finalAppraisal)}**. You are safe!</p>
+
+                        <button onclick="advanceStage()" class="btn-primary mt-6">Next: Closing Disclosure</button>`;
+
+            } else {
+
+                html = `<h3 class="text-2xl font-bold text-red-500 mb-4">APPRAISAL GAP: ${formatCurrency(gap)}</h3>
+
+                        <p class="text-gray-300">The home appraised for only **${formatCurrency(finalAppraisal)}**.</p>
+
+                        <p class="font-bold mt-2 text-accent">You must cover the ${formatCurrency(gap)} difference with cash.</p>
+
+                        ${gameState.offer.contingencies.appraisal ? `
+
+                            <button onclick="handleAppraisalGap('cash', ${gap})" class="btn-primary mr-3 bg-blue-600 mt-6">Bring Cash to Close</button>
+
+                            <button onclick="handleAppraisalGap('walk', ${gap})" class="btn-primary bg-red-600 mt-6">Walk Away (No Loss)</button>
+
+                        ` : `
+
+                            <p class="text-red-500 font-bold mt-3">You WAIVED the Contingency!</p>
+
+                            <button onclick="handleAppraisalGap('cash', ${gap})" class="btn-primary mr-3 bg-blue-600 mt-6">Bring Cash to Close</button>
+
+                            <button onclick="handleAppraisalGap('lose_emd', ${gap})" class="btn-primary bg-red-600 mt-6">Walk Away (Lose EMD)</button>
+
+                        `}
+
+            `;
+
+            }
+
+            return html;
+
+        };
+
+        window.handleAppraisalGap = (action, gap) => {
+
+            if (action === 'cash') {
+
+                const newSavings = gameState.savings - gap;
+
+                if (newSavings < 0) {
+
+                     showModal('FATAL ERROR', `Savings too low! Game Over.`);
+
+                     resetGame();
+
+                     return;
+
+                }
+
+                showModal('Gap Covered', `You brought **${formatCurrency(gap)}** in cash. Savings updated.`);
+
+                advanceStage({ savings: newSavings });
+
+            } else if (action === 'walk') {
+
+                showModal('Contract Cancelled', `You walked away due to the appraisal gap. You lose nothing.`);
+
+                saveGameState({ stage: '2-1', property: null, offer: null });
+
+            } else if (action === 'lose_emd') {
+
+                const newSavings = gameState.savings - gameState.offer.emd;
+
+                showModal('Contract Cancelled', `You lost your EMD of ${formatCurrency(gameState.offer.emd)}.`);
+
+                saveGameState({ stage: '2-1', savings: newSavings, property: null, offer: null });
+
+            }
+
+        };
+
+
+
+
+
+        const renderClosingDisclosure = () => {
+
+            const loanAmount = gameState.property.price * (1 - gameState.downPaymentPct);
+
+            const closingCostPercent = 0.035; 
+
+            const appraisalGap = Math.max(0, gameState.offer.price - gameState.appraisalValue);
+
+            const totalCashNeeded = roundToNearest(gameState.property.price * gameState.downPaymentPct + loanAmount * closingCostPercent + appraisalGap, 100);
+
+            
+
+            saveGameState({ cashToClose: totalCashNeeded });
+
+
+
+            return `
+
+                <h3 class="text-xl font-bold text-primary mb-4">Closing Disclosure Summary</h3>
+
+                <div class="bg-gray-700 p-4 rounded-lg space-y-2 text-left text-gray-200">
+
+                    <div class="flex justify-between"><span>Down Payment:</span> <span class="font-bold">${formatCurrency(gameState.property.price * gameState.downPaymentPct)}</span></div>
+
+                    <div class="flex justify-between"><span>Closing Costs (Est.):</span> <span class="font-bold">${formatCurrency(loanAmount * closingCostPercent)}</span></div>
+
+                    ${appraisalGap > 0 ? `<div class="flex justify-between text-red-400"><span>Appraisal Gap Coverage:</span> <span class="font-bold">${formatCurrency(appraisalGap)}</span></div>` : ''}
+
+                    <hr class="my-2 border-gray-500">
+
+                    <div class="flex justify-between text-lg font-black text-accent"><span>TOTAL CASH TO CLOSE:</span> <span>${formatCurrency(totalCashNeeded)}</span></div>
+
+                </div>
+
+
+
+                <p class="mt-6 text-gray-300">Your Current Savings: <span class="font-bold text-accent text-lg">${formatCurrency(gameState.savings)}</span></p>
+
+                
+
+                ${gameState.savings >= totalCashNeeded ? `
+
+                    <button onclick="advanceStage()" class="btn-primary w-full mt-6">Next: Closing Day</button>
+
+                ` : `
+
+                    <p class="text-red-500 font-bold text-center mt-6">CRITICAL: Insufficient Funds!</p>
+
+                    <button onclick="resetGame()" class="btn-primary bg-red-600 w-full mt-4">Game Over: Foreclosure</button>
+
+                `}
+
+            `;
+
+        };
+
+
+
+        const renderClosingDay = () => {
+
+             const newSavings = gameState.savings - gameState.cashToClose;
+
+             saveGameState({ savings: newSavings });
+
+            return `
+
+                <h3 class="text-2xl font-bold text-secondary mb-4">Signing Day!</h3>
+
+                <p class="text-gray-300">You signed the final documents! You paid **${formatCurrency(gameState.cashToClose)}** in cash to close.</p>
+
+                <button onclick="advanceStage()" class="btn-primary mt-6">See Final Summary</button>
+
+            `;
+
+        };
+
+        
+
+        const renderCompletionScreen = () => {
+
+            return `
+
+                <h2 class="text-3xl font-black text-accent mb-4">🎉 CONGRATULATIONS! 🎉</h2>
+
+                <h3 class="text-xl font-bold text-secondary mb-6">You are now a Homeowner!</h3>
+
+
+
+                <div class="bg-gray-700 p-4 rounded-xl inline-block mb-8 text-left text-gray-200">
+
+                    <p>Property Price: **${formatCurrency(gameState.property.price)}**</p>
+
+                    <p>Total Cash Invested: **${formatCurrency(gameState.cashToClose)}**</p>
+
+                    <p class="mt-3 text-lg font-bold text-accent">Remaining Savings: ${formatCurrency(gameState.savings)}</p>
+
+                </div>
+
+
+
+                <p class="text-lg mb-6 text-gray-300">You mastered the path to homeownership!</p>
+
+
+
+                <button onclick="resetGame()" class="btn-primary">Play Again / Start New Journey</button>
+
+            `;
+
+        };
+
+
+
+
+
+        // --- MODAL AND GAME CONTROL (Kept from previous steps) ---
+
+        const showModal = (title, body, footerHtml = `<button onclick="hideModal()" class="btn-primary">Got It</button>`) => {
+
+            document.getElementById('modal-title').innerHTML = title.includes('✨') ? `<i class="ph ph-sparkle mr-2 text-accent"></i> ${title}` : `<i class="ph ph-lightbulb mr-2 text-accent"></i> ${title}`;
+
+            document.getElementById('modal-body').innerHTML = body;
+
+            document.getElementById('modal-footer').innerHTML = footerHtml;
+
+            document.getElementById('modal').classList.remove('hidden');
+
+            document.getElementById('modal').classList.add('flex');
+
+        };
+
+        const hideModal = () => {
+
+            document.getElementById('modal').classList.add('hidden');
+
+            document.getElementById('modal').classList.remove('flex');
+
+        };
+
+        window.hideModal = hideModal;
+
+
+
+        const resetGame = () => {
+
+             showModal('Restart Game', 'Are you sure you want to reset your progress?',
+
+                 `<button onclick="hideModal(); saveGameState(initialGameState)" class="btn-primary bg-red-600 mr-2">Yes, Reset</button>
+
+                  <button onclick="hideModal()" class="btn-primary">No, Keep Playing</button>`
+
+             );
+
+        };
+
+        window.resetGame = resetGame;
+
+
+
+        // --- FIREBASE AND AUTHENTICATION (kept for context) ---
+
+
+
+        const initFirebase = async () => {
+
+             // Firebase initialization logic... (omitted for brevity but kept in mind)
+
+             authReady = true;
+
+             
+
+             // --- START GAME (Placeholder for Firebase loading) ---
+
+             // Simulate loading current game or starting new one
+
+             setTimeout(() => {
+
+                 document.getElementById('loading-overlay')?.classList.add('opacity-0', 'invisible');
+
+                 // If firebase was functional, this would load the state. Since it's a template, we just render start.
+
+                 updateBoardState(gameState.stage);
+
+                 renderCenterContent(gameState.stage);
+
+                 updateHeaderDisplay();
+
+             }, 500); 
+
+        };
+
+        
+
+        const saveGameState = async (newState) => {
+
+            gameState = { ...gameState, ...newState };
+
+            
+
+            // If Firebase was active, the save logic would go here:
+
+            // if (!authReady || !userId) return;
+
+            // const docRef = getGameDocRef(userId);
+
+            // await setDoc(docRef, gameState, { merge: true });
+
+            
+
+            updateBoardState(gameState.stage);
+
+            updateHeaderDisplay();
+
+            console.log("Game state updated locally:", gameState.stage);
+
+        };
+
+
+
+
+
+        // --- START THE APPLICATION ---
+
+        document.addEventListener('DOMContentLoaded', initFirebase);
+
+    </script>
+
+
+
+    <!-- Simple Loading Overlay (Kept structure for visual effect) -->
+
+    <div id="loading-overlay" class="fixed inset-0 bg-primary bg-opacity-95 flex items-center justify-center z-50 transition-opacity duration-500">
+
+        <div class="text-white flex flex-col items-center">
+
+            <svg class="animate-spin -ml-1 mr-3 h-10 w-10 text-accent" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+
+            </svg>
+
+            <p class="mt-4 text-lg">Loading Cristiano Jarbas Game Board...</p>
+
         </div>
-        <div class="board-tile">
-          <p class="font-semibold text-indigo-300 mb-1">5. Oferta</p>
-          <p>Estratégia certa para ganhar sem jogar dinheiro fora.</p>
-        </div>
-        <div class="board-tile">
-          <p class="font-semibold text-emerald-300 mb-1">
-            6. Inspeção & negociação
-          </p>
-          <p>Renegociar, pedir crédito ou seguir em frente com segurança.</p>
-        </div>
-        <div class="board-tile">
-          <p class="font-semibold text-emerald-300 mb-1">
-            7. Appraisal & underwriting
-          </p>
-          <p>Evitar surpresas com valor e aprovação do banco.</p>
-        </div>
-        <div class="board-tile">
-          <p class="font-semibold text-emerald-300 mb-1">8. Clear to close</p>
-          <p>Todos os docs prontos. Só marcar o dia e assinar.</p>
-        </div>
-        <div class="board-tile">
-          <p class="font-semibold text-amber-300 mb-1">
-            9. Closing & keys
-          </p>
-          <p>Assinatura final, chave na mão, foto com placa.</p>
-        </div>
-        <div class="board-tile">
-          <p class="font-semibold text-amber-300 mb-1">10. Pós-venda</p>
-          <p>Follow-up, indicação, review e relacionamento para sempre.</p>
-        </div>
-      </div>
-    </section>
 
-    <!-- Action / Log -->
-    <section
-      class="grid md:grid-cols-[minmax(0,2fr)_minmax(0,1.2fr)] gap-4 items-start"
-    >
-      <div
-        class="bg-slate-900/80 border border-slate-700 rounded-2xl p-4 space-y-3 text-sm"
-      >
-        <h3 class="font-semibold text-slate-200">
-          Current Action – What should Cristiano do?
-        </h3>
-        <p id="action-text" class="text-slate-300">
-          Click <strong>“Start Game”</strong> to generate a random scenario
-          (buyer, seller or investor) and see o próximo passo do agente.
-        </p>
+    </div>
 
-        <div class="flex flex-wrap gap-2 pt-1">
-          <button
-            id="btn-next"
-            class="px-3 py-1.5 rounded-full bg-slate-800 border border-slate-600 text-xs font-semibold hover:bg-slate-700 disabled:opacity-40 disabled:cursor-not-allowed"
-            disabled
-          >
-            Next move
-          </button>
-        </div>
-      </div>
-
-      <div
-        class="bg-slate-900/80 border border-slate-700 rounded-2xl p-4 text-xs space-y-2 max-h-64 overflow-y-auto"
-      >
-        <h3 class="font-semibold text-slate-200">Game log</h3>
-        <ul id="log-list" class="space-y-1 text-slate-300"></ul>
-      </div>
-    </section>
-  </div>
-
-  <script>
-    const stages = [
-      "Lead aparece",
-      "Descoberta",
-      "Pré-aprovação",
-      "Tour de casas",
-      "Oferta aceita",
-      "Inspeção & negociação",
-      "Appraisal & underwriting",
-      "Clear to close",
-      "Closing & keys",
-      "Pós-venda"
-    ];
-
-    const clients = ["First-time buyer", "Move-up buyer", "Investor", "Seller"];
-
-    const actions = [
-      "Cristiano faz uma ligação consultiva em vez de mandar só texto.",
-      "Agenda uma call rápida para alinhar expectativas e critérios.",
-      "Conecta o cliente com um lender de confiança para pré-aprovação.",
-      "Seleciona só 3–5 casas que fazem sentido, nada de turismo imobiliário.",
-      "Monta uma estratégia de oferta baseada em dados do mercado local.",
-      "Negocia itens da inspeção sem matar o negócio.",
-      "Acompanha de perto o lender para evitar atraso no underwriting.",
-      "Confere minuciosamente o closing disclosure com o cliente.",
-      "Entrega a chave, tira foto e pede review.",
-      "Mantém contato no pós-venda para futuras indicações."
-    ];
-
-    const stageLabel = document.getElementById("stage-label");
-    const clientLabel = document.getElementById("client-label");
-    const pipelineLabel = document.getElementById("pipeline-label");
-    const energyLabel = document.getElementById("energy-label");
-    const actionText = document.getElementById("action-text");
-    const logList = document.getElementById("log-list");
-
-    const btnStart = document.getElementById("btn-start");
-    const btnReset = document.getElementById("btn-reset");
-    const btnNext = document.getElementById("btn-next");
-
-    let currentStage = 0;
-    let currentClient = "First-time buyer";
-    let energy = 100;
-    let deals = 0;
-
-    function log(message) {
-      const li = document.createElement("li");
-      li.textContent = message;
-      logList.prepend(li);
-    }
-
-    function updateUI() {
-      stageLabel.textContent = `${currentStage + 1} – ${stages[currentStage]}`;
-      clientLabel.textContent = currentClient;
-      pipelineLabel.textContent = `${deals} deals in progress`;
-      energyLabel.textContent = `${energy}%`;
-    }
-
-    function randomItem(list) {
-      return list[Math.floor(Math.random() * list.length)];
-    }
-
-    btnStart.addEventListener("click", () => {
-      currentStage = 0;
-      currentClient = randomItem(clients);
-      energy = 100;
-      deals = 1;
-
-      updateUI();
-      const action = actions[currentStage];
-      actionText.innerHTML = action;
-      log(`Novo cenário: ${currentClient} entrou no funil no estágio "${stages[currentStage]}".`);
-      btnNext.disabled = false;
-    });
-
-    btnNext.addEventListener("click", () => {
-      if (currentStage < stages.length - 1) {
-        currentStage++;
-        energy = Math.max(0, energy - 7);
-        updateUI();
-        const action = actions[currentStage] || "Cristiano ajusta a estratégia para manter o cliente no caminho certo.";
-        actionText.innerHTML = action;
-        log(`Avançou para: "${stages[currentStage]}".`);
-      } else {
-        log("Deal fechado e pós-venda iniciado. GG! 🎉");
-        actionText.innerHTML =
-          "Parabéns! O cliente fechou, recebeu a chave e você ganhou mais um fã da sua marca.";
-        btnNext.disabled = true;
-      }
-    });
-
-    btnReset.addEventListener("click", () => {
-      currentStage = 0;
-      currentClient = "First-time buyer";
-      energy = 100;
-      deals = 0;
-      log("Jogo resetado.");
-      actionText.innerHTML =
-        'Click <strong>"Start Game"</strong> para gerar um novo cenário.';
-      updateUI();
-      btnNext.disabled = true;
-    });
-
-    // init
-    updateUI();
-  </script>
 </body>
+
 </html>
