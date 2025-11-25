@@ -26,10 +26,12 @@
         }
         .btn-primary:hover { opacity: 0.9; }
 
-        /* MODIFICAÇÃO: Cor do input para PRETO */
+        /* MODIFICAÇÃO CRÍTICA: Cor do input para PRETO */
         .input-field {
-            /* Adicionado text-black */
+            /* Definido background e forçando text-black */
             @apply w-full p-2 bg-white text-black border border-gray-600 rounded mb-2 focus:border-accent focus:outline-none transition;
+            /* Se for necessário um reforço maior (pode ser problema de herança de cor do navegador) */
+            color: black !important; 
         }
         .label-text {
             @apply block text-sm font-bold text-gray-400 mb-1 text-left;
@@ -258,7 +260,7 @@
         const formatPercent = (val) => (val * 100).toFixed(1) + '%';
         const roundToNearest = (val, n) => Math.round(val / n) * n;
 
-        // --- CORE FUNCTIONS (Mantidas em Inglês para clareza da programação) ---
+        // --- CORE FUNCTIONS ---
         const getNextStage = (current) => {
             const idx = stageOrder.indexOf(current);
             return (idx !== -1 && idx < stageOrder.length - 1) ? stageOrder[idx + 1] : 'complete';
@@ -300,27 +302,30 @@
         };
 
         window.handleSpaceClick = (id) => {
-            if (!document.getElementById(`space-${id}`).classList.contains('disabled')) {
-                // Se estivermos avançando para a próxima etapa, precisamos salvar os valores de input
-                if (id === getNextStage(gameState.stage)) {
-                    // Captura inputs da Etapa 1-1 (Renda)
-                    if (gameState.stage === '1-1') {
-                        // Usamos parseFloat para garantir que os valores sejam números, não strings.
-                        const newIncome = parseFloat(document.getElementById('input-income').value);
-                        const newSavings = parseFloat(document.getElementById('input-savings').value);
-                        saveGameState({ income: newIncome || 0, savings: newSavings || 0 }); // Usar || 0 para evitar NaN
-                    }
-                    // Captura inputs da Etapa 1-2 (Dívidas)
-                    if (gameState.stage === '1-2') {
-                        let newDebts = {};
-                        document.querySelectorAll('.debt-input').forEach(input => {
-                            newDebts[input.name] = parseFloat(input.value) || 0;
-                        });
-                        saveGameState({ currentDebts: newDebts });
-                    }
-                    
-                    saveGameState({ stage: id });
+            // Lógica para capturar e salvar os dados ANTES de mudar de tela
+            if (id === getNextStage(gameState.stage)) {
+                // Captura inputs da Etapa 1-1 (Renda)
+                if (gameState.stage === '1-1') {
+                    // CRÍTICO: Capturar o valor do input (string) e converter para número
+                    const newIncome = parseFloat(document.getElementById('input-income').value);
+                    const newSavings = parseFloat(document.getElementById('input-savings').value);
+                    saveGameState({ income: newIncome || 0, savings: newSavings || 0 }); 
                 }
+                // Captura inputs da Etapa 1-2 (Dívidas)
+                if (gameState.stage === '1-2') {
+                    let newDebts = {};
+                    document.querySelectorAll('.debt-input').forEach(input => {
+                        // CRÍTICO: Capturar o valor do input (string) e converter para número
+                        newDebts[input.name] = parseFloat(input.value) || 0;
+                    });
+                    saveGameState({ currentDebts: newDebts });
+                }
+                
+                // Agora que os dados estão salvos, avançamos
+                saveGameState({ stage: id });
+            }
+
+            if (!document.getElementById(`space-${id}`).classList.contains('disabled')) {
                 renderCenterContent(id);
             }
         };
@@ -335,7 +340,7 @@
             location.reload();
         };
 
-        // --- RENDER FUNCTIONS (Tradução do conteúdo aqui) ---
+        // --- RENDER FUNCTIONS ---
         const renderCenterContent = (id) => {
             const content = document.getElementById('center-content');
             let html = '';
@@ -405,17 +410,12 @@
                     const market = MARKET_SCENARIOS[gameState.market];
                     const debtSum = Object.values(gameState.currentDebts).reduce((a,b)=>a+b,0);
                     
-                    // CÁLCULO ATUALIZADO (Garante que os novos valores de Renda/Dívidas são usados)
-                    // Renda Mensal * DTI Máximo - Dívidas Mensais
                     const maxMonthly = (gameState.income * MAX_DTI) - debtSum; 
                     const estRate = market.interestRate / 12;
-                    const terms = 360; // 30 anos * 12 meses
-                    // Cálculo do valor máximo do empréstimo (Principal)
+                    const terms = 360; 
                     const maxLoan = maxMonthly * ((1 - Math.pow(1 + estRate, -terms)) / estRate); 
-                    // Cálculo do Preço Máximo da Casa (Empréstimo / Porcentagem financiada)
                     const maxPrice = roundToNearest(maxLoan / (1-gameState.downPaymentPct), 5000); 
                     
-                    // CORRIGIDO: Sempre salva o novo cálculo para atualizar o display no topo.
                     saveGameState({ maxOfferPrice: maxPrice });
 
                     html = `
@@ -431,7 +431,6 @@
                 case '2-1': // Busca (COM IMAGENS)
                     if(currentListings.length === 0) {
                         const base = gameState.maxOfferPrice;
-                        // Usando imagens realistas de casas
                         currentListings = [
                             {id:1, addr:"Rua dos Reformadores, 123", price: base*0.8, type:"bad", img: "https://images.unsplash.com/photo-1568605114967-8130f3a36994?w=500&q=80"},
                             {id:2, addr:"Avenida Padrão, 456", price: base*0.95, type:"ok", img: "https://images.unsplash.com/photo-1570129477492-45c003edd2be?w=500&q=80"},
@@ -544,12 +543,12 @@
             content.innerHTML = html;
         };
 
-        // --- WINDOW HELPERS (Tradução e pequenos ajustes de valor) ---
+        // --- WINDOW HELPERS ---
         window.selectMarket = (key) => {
             const m = MARKET_SCENARIOS[key];
             saveGameState({ 
                 market: key, 
-                income: m.startIncome, // Renda já é mensal no BR
+                income: m.startIncome, 
                 savings: m.startSavings, 
                 currentDebts: m.startDebts 
             });
