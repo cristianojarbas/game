@@ -1,20 +1,115 @@
-<!-- Substitua seu <script type="module"> original por este -->
-<script>
-// --- jogo lógico simplificado e atribuição global ---
-function handleSpaceClick(stageId) {
-  console.log("Clique no estágio:", stageId);
-  // aqui seu código existente de mudança de stage
-}
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tycoon Imobiliário – Versão mínima</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: #0d1117;
+      color: #f3f4f6;
+      margin: 0;
+      padding: 0;
+    }
+    .game-board {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      max-width: 300px;
+      margin: 40px auto;
+    }
+    .board-space {
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding:20px;
+      background-color: #1E40FF;
+      color: white;
+      font-weight:600;
+      cursor:pointer;
+      border-radius:8px;
+      transition: transform .1s ease, box-shadow .2s ease;
+    }
+    .board-space.disabled {
+      opacity:0.4;
+      cursor:not-allowed;
+    }
+    .board-space:not(.disabled):hover {
+      transform: scale(1.05);
+      box-shadow: 0 0 10px rgba(255,255,255,0.3);
+    }
+    .active {
+      border: 2px solid #FFC300;
+      box-shadow: 0 0 15px #FFC300;
+    }
+  </style>
+</head>
+<body>
 
-// Exponha globalmente
-window.handleSpaceClick = handleSpaceClick;
+  <div class="game-board" id="gameBoard">
+    <div id="space-start" class="board-space">INICIAR</div>
+    <div id="space-1" class="board-space disabled">ETAPA 1</div>
+    <div id="space-2" class="board-space disabled">ETAPA 2</div>
+    <div id="space-3" class="board-space disabled">ETAPA 3</div>
+    <div id="space-4" class="board-space disabled">FINAL</div>
+  </div>
 
-// Quando DOM pronto, inicialize
-document.addEventListener('DOMContentLoaded', function() {
-  console.log("DOM carregado — iniciando gameState etc");
-  // sua lógica de init: updateBoardState, renderCenterContent etc
-  // Exemplo:
-  updateBoardState(gameState.stage);
-  renderCenterContent(gameState.stage);
-});
-</script>
+  <div style="text-align:center; margin-top:20px;">
+    <button id="resetButton" class="px-6 py-3 bg-red-600 text-white rounded">Reiniciar Jogo</button>
+  </div>
+
+  <script>
+    const stages = ['start','1','2','3','4'];
+    let currentStageIndex = 0;
+
+    const updateBoard = () => {
+      stages.forEach((s, idx) => {
+        const el = document.getElementById(`space-${s}`);
+        if (!el) return;
+        el.classList.remove('active');
+        if (idx > currentStageIndex) {
+          el.classList.add('disabled');
+        } else {
+          el.classList.remove('disabled');
+        }
+        if (idx === currentStageIndex) {
+          el.classList.add('active');
+        }
+      });
+    };
+
+    const handleClick = (s) => {
+      const idx = stages.indexOf(s);
+      if (idx === currentStageIndex) {
+        // evento de clique válido
+        currentStageIndex++;
+        if (currentStageIndex >= stages.length) {
+          alert('🎉 Parabéns – você completou o jogo!');
+          currentStageIndex = 0;
+        }
+        updateBoard();
+      } else {
+        alert('Por favor avance na sequência correta.');
+      }
+    };
+
+    document.getElementById('space-start').onclick = () => handleClick('start');
+    document.getElementById('space-1').onclick = () => handleClick('1');
+    document.getElementById('space-2').onclick = () => handleClick('2');
+    document.getElementById('space-3').onclick = () => handleClick('3');
+    document.getElementById('space-4').onclick = () => handleClick('4');
+
+    document.getElementById('resetButton').onclick = () => {
+      currentStageIndex = 0;
+      updateBoard();
+    };
+
+    // inicializa
+    updateBoard();
+  </script>
+
+</body>
+</html>
