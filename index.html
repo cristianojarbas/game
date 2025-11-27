@@ -608,7 +608,7 @@
                     const socialLinks = [
                         { name: "Instagram", url: "https://www.instagram.com/cristianojarbasrealestate/", icon: "ph-instagram-logo" },
                         { name: "Facebook", url: "https://www.facebook.com/cristianojarbasrealestate", icon: "ph-facebook-logo" },
-                        { name: "LinkedIn", url: "https://www.linkedin.com/in/cristiano-jarbas-9315511b/", icon: "ph-linkedin-logo" },
+                        { name: "LinkedIn", url: "https://www.linkedin.com/in/cristiano-jarbas-931551b/", icon: "ph-linkedin-logo" },
                         { name: "YouTube", url: "https://www.youtube.com/@cristianoJarbas", icon: "ph-youtube-logo" },
                         { name: "Website/Blog", url: "https://www.seusite.com.br", icon: "ph-globe" },
                         { name: "WhatsApp", url: "https://wa.me/55DDENÚMERO", icon: "ph-whatsapp-logo" }
@@ -754,6 +754,9 @@
                         <div class="space-y-4 w-full text-left">
                             ${currentListings.map((prop, index) => `
                                 <div class="p-4 rounded-lg border-2 ${prop.price > gameState.maxOfferPrice ? 'border-secondary bg-red-900 bg-opacity-30' : 'border-primary bg-gray-700'}">
+                                    
+                                    <img src="${prop.imageUrl}" onerror="this.onerror=null; this.src='https://via.placeholder.com/200x100?text=Foto+Casa+3D';" alt="Foto da Casa" class="w-full h-24 object-cover rounded mb-2">
+
                                     <div class="font-bold text-lg">${prop.type} em ${prop.location}</div>
                                     <div class="text-xl font-black text-white">${formatCurrency(prop.price)}</div>
                                     ${prop.price > gameState.maxOfferPrice ? '<p class="text-secondary text-sm font-bold">FORA DO ORÇAMENTO</p>' : ''}
@@ -771,6 +774,9 @@
                     }
                     html = `
                         <h3 class="text-xl font-bold mb-4">Análise do Imóvel Selecionado</h3>
+                        
+                        <img src="${gameState.property.imageUrl}" onerror="this.onerror=null; this.src='https://via.placeholder.com/400x200?text=Foto+Casa+3D+Grande';" alt="Foto da Casa" class="w-full h-40 object-cover rounded mb-4">
+
                         <div class="p-4 bg-gray-700 rounded-lg w-full text-left">
                             <div class="font-bold text-lg">${gameState.property.type} em ${gameState.property.location}</div>
                             <div class="text-3xl font-black text-accent mb-2">${formatCurrency(gameState.property.price)}</div>
@@ -791,6 +797,9 @@
                         <h3 class="text-xl font-bold mb-4">Confirmação de Seleção</h3>
                         <p class="text-lg font-bold mb-2">Imóvel Escolhido:</p>
                         <div class="p-4 bg-gray-700 rounded-lg w-full">
+                            
+                            <img src="${gameState.property.imageUrl}" onerror="this.onerror=null; this.src='https://via.placeholder.com/400x200?text=Foto+Casa+3D+Grande';" alt="Foto da Casa" class="w-full h-40 object-cover rounded mb-4">
+                            
                             <div class="font-bold text-lg">${gameState.property.type} em ${gameState.property.location}</div>
                             <div class="text-3xl font-black text-white">${formatCurrency(gameState.property.price)}</div>
                         </div>
@@ -804,6 +813,9 @@
                     
                     html = `
                         <h3 class="text-xl font-bold mb-4">Fazer Oferta</h3>
+                        
+                        <img src="${gameState.property.imageUrl}" onerror="this.onerror=null; this.src='https://via.placeholder.com/400x200?text=Foto+Casa+3D';" alt="Foto da Casa" class="w-full h-32 object-cover rounded mb-4">
+
                         <p class="text-sm text-gray-400 mb-4">Imóvel: ${formatCurrency(gameState.property.price)}.</p>
                         
                         <div class="w-full space-y-3">
@@ -828,6 +840,8 @@
                     html = `
                         <h3 class="text-xl font-bold mb-4">Relatório de Inspeção</h3>
                         
+                        <img src="${gameState.property.imageUrl}" onerror="this.onerror=null; this.src='https://via.placeholder.com/400x200?text=Foto+Casa+3D';" alt="Foto da Casa" class="w-full h-32 object-cover rounded mb-4">
+
                         <div class="p-4 bg-gray-700 rounded-lg w-full text-left">
                             <p class="font-bold mb-2 text-white">Custos de Reparo Estimados:</p>
                             <p class="text-4xl font-black text-secondary">${formatCurrency(inspectionResult)}</p>
@@ -860,6 +874,9 @@
 
                     html = `
                         <h3 class="text-xl font-bold mb-4">Relatório de Avaliação</h3>
+
+                        <img src="${gameState.property.imageUrl}" onerror="this.onerror=null; this.src='https://via.placeholder.com/400x200?text=Foto+Casa+3D';" alt="Foto da Casa" class="w-full h-32 object-cover rounded mb-4">
+
                         <div class="p-4 bg-gray-700 rounded-lg w-full text-left mb-4">
                             <p class="font-bold mb-2 text-white">Valor Avaliado:</p>
                             <p class="text-4xl font-black text-accent">${formatCurrency(appraisalValue)}</p>
@@ -875,6 +892,9 @@
                     
                     html = `
                         <h3 class="text-xl font-bold mb-4">Fechamento do Contrato</h3>
+                        
+                        <img src="${gameState.property.imageUrl}" onerror="this.onerror=null; this.src='https://via.placeholder.com/400x200?text=Foto+Casa+3D';" alt="Foto da Casa" class="w-full h-32 object-cover rounded mb-4">
+
                         <p class="text-lg font-bold mb-4 text-white">Custos Finais a Pagar:</p>
                         <p class="text-5xl font-black text-accent mb-4">${formatCurrency(closingCosts.total)}</p>
                         
@@ -972,6 +992,15 @@
             const [min, max] = marketData.priceRange;
             
             const listings = [];
+            
+            // ATUALIZAÇÃO: Links para as imagens Cartoon 3D (Você precisa salvar estes arquivos!)
+            const images = [
+                './house-1.jpg', 
+                './house-2.jpg',
+                './house-3.jpg',
+                './house-4.jpg'
+            ];
+            
             for (let i = 0; i < 4; i++) {
                 const priceBase = Math.random() * (max - min) + min;
                 const price = roundToNearest(priceBase, 5000); 
@@ -983,11 +1012,12 @@
                     id: i,
                     price: price,
                     marketPrice: marketPrice,
-                    type: ['Casa Isolada', 'Sobrado', 'Apartamento', 'Townhouse'][Math.floor(Math.random() * 4)],
-                    location: ['Bairro Nobre', 'Região Central', 'Periferia em Ascensão', 'Próximo ao Parque'][i],
+                    type: ['Casa Isolada', 'Sobrado', 'Apartamento', 'Townhouse'][i], // Tipos fixos para combinar com as 4 fotos
+                    location: ['Subúrbio', 'Metrópole', 'Litoral', 'Central'][i],
                     beds: Math.floor(Math.random() * 3) + 2,
                     baths: Math.floor(Math.random() * 2) + 1,
                     sqft: roundToNearest(price / 1000, 10), // Tamanho baseado no preço
+                    imageUrl: images[i], // NOVO: URL da imagem
                 });
             }
             return listings;
