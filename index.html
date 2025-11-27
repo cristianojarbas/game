@@ -13,7 +13,7 @@
 
     <style>
         :root {
-            --color-primary: #1E40FF; /* Blue */
+            --color-primary: #1E40FF; /* Blue (Usado para o destaque) */
             --color-secondary: #C8102E; /* Red */
             --color-accent: #FFC300; /* Gold */
         }
@@ -86,9 +86,10 @@
             z-index: 10;
         }
 
+        /* ESTILO PARA DESTAQUE DO PASSO ATUAL (AGORA AZUL) */
         .stage-active {
-            box-shadow: 0 0 20px var(--color-accent);
-            border: 2px solid var(--color-accent);
+            box-shadow: 0 0 20px var(--color-primary); 
+            border: 2px solid var(--color-primary);
             z-index: 20;
             transform: scale(1.05);
         }
@@ -227,7 +228,7 @@
                 </button>
             </div>
             <div id="modal-body" class="p-6"></div>
-            <div class="px-6 py-4 bg-gray-50 flex justify-end">
+            <div id="modal-footer" class="px-6 py-4 bg-gray-50 flex justify-end">
                 <button onclick="hideModal()" class="btn-primary">OK</button>
             </div>
         </div>
@@ -406,28 +407,40 @@
             document.getElementById('market-display').innerText = mkt;
             document.getElementById('budget-display').innerText = budget;
 
+            // 1. Limpa todas as classes de destaque e desativa a maioria
             document.querySelectorAll('.board-space').forEach(el => {
                 el.classList.remove('stage-active');
-                el.classList.add('disabled');
+                // Mantemos o disabled aqui para o fluxo principal
+                if (!['ranking', 'calculator', 'social', 'start'].includes(el.id.replace('space-', ''))) {
+                    el.classList.add('disabled');
+                }
             });
 
+            // Se o jogo não começou, apenas o 'start' é ativo
             if (gameState.stage === 'start') {
                 document.getElementById('space-start').classList.remove('disabled');
                 document.getElementById('space-start').classList.add('stage-active');
-            } else if (gameState.stage !== 'complete') {
+                return;
+            } 
+            
+            // Se o jogo está em andamento
+            if (gameState.stage !== 'complete') {
                 const currentId = `space-${gameState.stage}`;
                 const nextStage = getNextStage(gameState.stage);
                 const nextId = `space-${nextStage}`;
-
+                
+                // Ativa a etapa atual (o usuário pode clicar para ver o resumo/informações)
                 const currEl = document.getElementById(currentId);
-                if(currEl) currEl.classList.remove('disabled');
-
+                if(currEl) currEl.classList.remove('disabled'); 
+                
+                // Aplica o destaque na PRÓXIMA etapa, indicando o alvo
                 const nextEl = document.getElementById(nextId);
                 if(nextEl) {
                     nextEl.classList.remove('disabled');
-                    nextEl.classList.add('stage-active');
+                    nextEl.classList.add('stage-active'); // DESTAQUE: PRÓXIMO PASSO
                 }
             }
+            
             // Botões de ranking, calculadora e social sempre ativos
             document.getElementById('space-ranking').classList.remove('disabled');
             document.getElementById('space-calculator').classList.remove('disabled');
@@ -595,7 +608,8 @@
                     const socialLinks = [
                         { name: "Instagram", url: "https://www.instagram.com/cristianojarbasrealestate/", icon: "ph-instagram-logo" },
                         { name: "Facebook", url: "https://www.facebook.com/cristianojarbasrealestate", icon: "ph-facebook-logo" },
-                        { name: "LinkedIn", url: "https://www.linkedin.com/in/SEU_LINKEDIN", icon: "ph-linkedin-logo" },
+                        { name: "LinkedIn", url: "https://www.linkedin.com/in/cristiano-jarbas-9315511b/", icon: "ph-linkedin-logo" },
+                        { name: "YouTube", url: "https://www.youtube.com/@cristianoJarbas", icon: "ph-youtube-logo" },
                         { name: "Website/Blog", url: "https://www.seusite.com.br", icon: "ph-globe" },
                         { name: "WhatsApp", url: "https://wa.me/55DDENÚMERO", icon: "ph-whatsapp-logo" }
                     ];
@@ -870,7 +884,7 @@
                             <p>Crédito do Vendedor: ${formatCurrency(closingCosts.sellerCredit)}</p>
                         </div>
                         
-                        <button onclick="processClosing(${totalCost})" class="btn-primary mt-6">Assinar e Pagar</button>
+                        <button onclick="processClosing(${closingCosts.total})" class="btn-primary mt-6">Assinar e Pagar</button>
                     `;
                     break;
                 default:
@@ -1056,21 +1070,20 @@
             // O cliente precisa cobrir a diferença do próprio bolso, reduzindo as savings
             if (gameState.savings >= difference) {
                 saveGameState({ savings: gameState.savings - difference });
-                showModal("Avaliação Resolvida", `A diferença de ${formatCurrency(difference)} foi coberta com a poupança do cliente.`);
+                showModal("Avaliação Resolvida", `A diferença de ${formatCurrency(difference)} foi coberta com a poupança do cliente.`, '<button onclick="hideModal()" class="btn-primary">Continuar</button>');
                 advanceStage(); // Avança para 3-3 (Fechamento)
             } else {
-                showModal("Falha na Compra", `O cliente não tem poupança suficiente para cobrir a diferença de ${formatCurrency(difference)} da baixa avaliação. O negócio falhou.`);
-                resetGame();
+                // FALHA NA COMPRA: Adiciona o botão de Recomeçar na modal
+                showModal("Falha na Compra", `O cliente não tem poupança suficiente para cobrir a diferença de ${formatCurrency(difference)} da baixa avaliação. O negócio falhou.`, '<button onclick="resetGame()" class="btn-primary">Recomeçar o Jogo</button>');
             }
         };
 
         const calculateClosingCosts = () => {
             const price = gameState.property.price;
             const downPayment = gameState.downPaymentPct;
-            const loanAmount = price - downPayment;
             const sellerCredit = gameState.offer.sellerCredit || 0;
 
-            // Estimativa de Custos de Fechamento (2% a 5% do valor do empréstimo)
+            // Estimativa de Custos de Fechamento (2% a 5% do valor do preço)
             const feesAndTaxes = roundToNearest(price * 0.03, 500); 
 
             // Custos de fechamento líquidos
@@ -1087,11 +1100,11 @@
         window.processClosing = (totalCost) => {
             if (gameState.savings >= totalCost) {
                 saveGameState({ savings: gameState.savings - totalCost });
-                showModal("Sucesso!", `Transação concluída! Total pago: ${formatCurrency(totalCost)}. O cliente é agora o novo proprietário.`);
+                showModal("Sucesso!", `Transação concluída! Total pago: ${formatCurrency(totalCost)}. O cliente é agora o novo proprietário.`, '<button onclick="hideModal()" class="btn-primary">Continuar</button>');
                 advanceStage(); // Avança para 3-4 (Chaves!)
             } else {
-                showModal("Falha no Fechamento", `O cliente não tem ${formatCurrency(totalCost)} em poupança para o fechamento. O negócio falhou.`);
-                resetGame();
+                // FALHA NO FECHAMENTO: Adiciona o botão de Recomeçar na modal
+                showModal("Falha no Fechamento", `O cliente não tem ${formatCurrency(totalCost)} em poupança para o fechamento. O negócio falhou.`, '<button onclick="resetGame()" class="btn-primary">Recomeçar o Jogo</button>');
             }
         };
 
@@ -1108,9 +1121,15 @@
             }
         };
 
-        window.showModal = (title, body) => {
+        // Função showModal atualizada para receber um conteúdo de rodapé opcional
+        window.showModal = (title, body, footerHtml = '<button onclick="hideModal()" class="btn-primary">OK</button>') => {
             document.getElementById('modal-title').innerText = title;
             document.getElementById('modal-body').innerHTML = body;
+            
+            // Popula o rodapé com o HTML customizado ou o padrão "OK"
+            const footerEl = document.getElementById('modal-footer');
+            footerEl.innerHTML = footerHtml;
+
             document.getElementById('modal').classList.remove('hidden');
             document.getElementById('modal').classList.add('flex');
         };
@@ -1118,10 +1137,11 @@
         window.hideModal = () => {
             document.getElementById('modal').classList.add('hidden');
             document.getElementById('modal').classList.remove('flex');
+            // Restaura o rodapé padrão da modal, caso tenha sido sobrescrito
+            document.getElementById('modal-footer').innerHTML = '<button onclick="hideModal()" class="btn-primary">OK</button>';
         };
 
         // --- INIT ---
-        // Alterado para DOMContentLoaded para garantir que o script rode mais cedo
         document.addEventListener('DOMContentLoaded', () => {
             updateUI();
             renderCenterContent('intro'); 
