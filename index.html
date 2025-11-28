@@ -1,803 +1,1232 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cristiano Jarbas Tycoon</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" rel="stylesheet">
-    <script src="https://unpkg.com/phosphor-icons"></script>
-    
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cristiano Jarbas Tycoon</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/phosphor-icons"></script>
+    
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
 
-    <style>
-        :root {
-            --color-primary: #1E40FF; /* Blue (Usado para o destaque) */
-            --color-secondary: #C8102E; /* Red */
-            --color-accent: #FFC300; /* Gold */
-        }
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: #0d1117;
-            color: #f3f4f6;
-        }
-        
-        .btn-primary {
-            @apply px-6 py-3 rounded-xl font-bold transition duration-200 shadow-lg text-white w-full;
-            background-color: var(--color-secondary);
-        }
-        .btn-primary:hover { opacity: 0.9; }
+    <style>
+        :root {
+            --color-primary: #1E40FF; /* Blue */
+            --color-secondary: #C8102E; /* Red */
+            --color-accent: #FFC300; /* Gold */
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0d1117;
+            color: #f3f4f6;
+        }
+        
+        .btn-primary {
+            @apply px-6 py-3 rounded-xl font-bold transition duration-200 shadow-lg text-white w-full flex items-center justify-center gap-2;
+            background-color: var(--color-secondary);
+        }
+        .btn-primary:hover { opacity: 0.9; }
 
-        .input-field {
-            @apply w-full p-2 bg-white text-black border border-gray-600 rounded mb-2 focus:border-accent focus:outline-none transition;
-            color: black !important; 
-        }
-        .label-text {
-            @apply block text-sm font-bold text-gray-400 mb-1 text-left;
-        }
+        .btn-secondary {
+             @apply px-6 py-3 rounded-xl font-bold transition duration-200 shadow-lg text-gray-900 bg-gray-300 w-full flex items-center justify-center gap-2;
+        }
 
-        .smoke-effect {
-            box-shadow: 0 0 15px 5px rgba(255, 255, 255, 0.3), 0 0 30px 10px rgba(255, 255, 255, 0.15) inset;
-        }
-        
-        .game-board {
-            display: grid;
-            grid-template-columns: repeat(5, 1fr);
-            grid-template-rows: repeat(5, 1fr);
-            gap: 10px;
-            max-width: 800px;
-            aspect-ratio: 1 / 1;
-            margin: 20px auto;
-            border: 10px solid var(--color-secondary);
-            border-radius: 20px;
-            background-color: #0d1117;
-        }
+        .input-field {
+            @apply w-full p-2 bg-white text-black border border-gray-600 rounded mb-2 focus:border-accent focus:outline-none transition;
+            color: black !important; 
+        }
+        .label-text {
+            @apply block text-sm font-bold text-gray-400 mb-1 text-left;
+        }
 
-        .board-space {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            padding: 4px;
-            border-radius: 12px;
-            cursor: pointer;
-            transition: transform 0.1s ease, box-shadow 0.2s ease;
-            text-align: center;
-            font-weight: 600;
-            color: white;
-            font-size: 0.8rem;
-            position: relative;
-        }
+        .smoke-effect {
+            box-shadow: 0 0 15px 5px rgba(255, 255, 255, 0.3), 0 0 30px 10px rgba(255, 255, 255, 0.15) inset;
+        }
+        
+        .game-board {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            grid-template-rows: repeat(5, 1fr);
+            gap: 10px;
+            max-width: 800px;
+            aspect-ratio: 1 / 1;
+            margin: 20px auto;
+            border: 10px solid var(--color-secondary);
+            border-radius: 20px;
+            background-color: #0d1117;
+        }
 
-        @media (max-width: 768px) {
-            .board-space { font-size: 0.6rem; }
-            .board-space i { font-size: 1.2rem; }
-        }
+        .board-space {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 4px;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: transform 0.1s ease, box-shadow 0.2s ease;
+            text-align: center;
+            font-weight: 600;
+            color: white;
+            font-size: 0.8rem;
+            position: relative;
+        }
 
-        .board-space.disabled {
-            opacity: 0.3;
-            cursor: not-allowed;
-            filter: grayscale(100%);
-        }
-        .board-space:not(.disabled):hover {
-            transform: scale(1.05);
-            box-shadow: 0 0 15px rgba(255, 255, 255, 0.3);
-            z-index: 10;
-        }
+        @media (max-width: 768px) {
+            .board-space { font-size: 0.6rem; }
+            .board-space i { font-size: 1.2rem; }
+        }
 
-        /* ESTILO PARA DESTAQUE DO PASSO ATUAL (AGORA AZUL) */
-        .stage-active {
-            box-shadow: 0 0 20px var(--color-primary); 
-            border: 2px solid var(--color-primary);
-            z-index: 20;
-            transform: scale(1.05);
-        }
+        .board-space.disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+            filter: grayscale(100%);
+        }
+        .board-space:not(.disabled):hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 15px rgba(255, 255, 255, 0.3);
+            z-index: 10;
+        }
 
-        .zone-1 { background-color: var(--color-primary); } 
-        .zone-2 { background-color: var(--color-secondary); } 
-        .zone-3 { background-color: #475569; } 
-        .space-start { background-color: #10B981; } 
+        /* ESTILO PARA DESTAQUE DO PRÓXIMO PASSO (AGORA AZUL) */
+        .stage-active {
+            box-shadow: 0 0 20px var(--color-primary); 
+            border: 2px solid var(--color-primary);
+            z-index: 20;
+            transform: scale(1.05);
+        }
 
-        .space-start { grid-area: 5 / 5 / 6 / 6; }
-        .space-1-1 	{ grid-area: 5 / 4 / 6 / 5; }
-        .space-1-2 	{ grid-area: 5 / 3 / 6 / 4; }
-        .space-1-3 	{ grid-area: 5 / 2 / 6 / 3; }
-        .space-1-4 	{ grid-area: 5 / 1 / 6 / 2; }
-        .space-2-1 	{ grid-area: 4 / 1 / 5 / 2; }
-        .space-2-2 	{ grid-area: 3 / 1 / 4 / 2; }
-        .space-2-3 	{ grid-area: 2 / 1 / 3 / 2; }
-        .space-2-4 	{ grid-area: 1 / 1 / 2 / 2; }
-        .space-3-1 	{ grid-area: 1 / 2 / 2 / 3; }
-        .space-3-2 	{ grid-area: 1 / 3 / 2 / 4; }
-        .space-3-3 	{ grid-area: 1 / 4 / 2 / 5; }
-        .space-3-4 	{ grid-area: 1 / 5 / 2 / 6; }
+        .zone-1 { background-color: var(--color-primary); } 
+        .zone-2 { background-color: var(--color-secondary); } 
+        .zone-3 { background-color: #475569; } 
+        .space-start { background-color: #10B981; } 
 
-        .center-display {
-            grid-area: 2 / 2 / 5 / 5;
-            background-color: #1f2937;
-            border-radius: 12px;
-            padding: 20px;
-            overflow-y: auto;
-            border: 1px solid #374151;
-        }
+        /* Layout do Tabuleiro */
+        .space-start { grid-area: 5 / 5 / 6 / 6; }
+        .space-1-1 	{ grid-area: 5 / 4 / 6 / 5; }
+        .space-1-2 	{ grid-area: 5 / 3 / 6 / 4; }
+        .space-1-3 	{ grid-area: 5 / 2 / 6 / 3; }
+        .space-1-4 	{ grid-area: 5 / 1 / 6 / 2; }
+        .space-2-1 	{ grid-area: 4 / 1 / 5 / 2; }
+        .space-2-2 	{ grid-area: 3 / 1 / 4 / 2; }
+        .space-2-3 	{ grid-area: 2 / 1 / 3 / 2; }
+        .space-2-4 	{ grid-area: 1 / 1 / 2 / 2; }
+        .space-3-1 	{ grid-area: 1 / 2 / 2 / 3; }
+        .space-3-2 	{ grid-area: 1 / 3 / 2 / 4; }
+        .space-3-3 	{ grid-area: 1 / 4 / 2 / 5; }
+        .space-3-4 	{ grid-area: 1 / 5 / 2 / 6; }
 
-        .center-content {
-            height: 100%;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            text-align: center;
-        }
+        .center-display {
+            grid-area: 2 / 2 / 5 / 5;
+            background-color: #1f2937;
+            border-radius: 12px;
+            padding: 20px;
+            overflow-y: auto;
+            border: 1px solid #374151;
+        }
 
-        .ranking-list {
-            @apply w-full space-y-2;
-        }
-        .ranking-item {
-            @apply flex justify-between p-3 rounded-lg bg-gray-700 items-center;
-        }
-    </style>
+        .center-content {
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+        }
+
+        .ranking-list {
+            @apply w-full space-y-2;
+        }
+        .ranking-item {
+            @apply flex justify-between p-3 rounded-lg bg-gray-700 items-center;
+        }
+    </style>
 </head>
 <body class="min-h-screen flex flex-col">
 
-    <header class="bg-gray-900 shadow-lg py-4 border-b border-gray-800">
-        <div class="max-w-7xl mx-auto px-4 text-center">
-            <h1 class="text-2xl md:text-3xl font-black text-white flex items-center justify-center gap-2">
-                <img src="./PIC.png" onerror="this.onerror=null; this.src='https://via.placeholder.com/32'" alt="Foto de Perfil" class="h-8 w-8 rounded-full object-cover border-2 border-accent mr-2 smoke-effect">
-                <span>Cristiano Jarbas <span class="text-primary">Tycoon</span></span>
-            </h1>
-        </div>
-    </header>
+    <header class="bg-gray-900 shadow-lg py-4 border-b border-gray-800">
+        <div class="max-w-7xl mx-auto px-4 text-center">
+            <h1 class="text-2xl md:text-3xl font-black text-white flex items-center justify-center gap-2">
+                <img src="https://via.placeholder.com/32/FFC300/000000?text=CJ" onerror="this.onerror=null; this.src='https://via.placeholder.com/32/FFC300/000000?text=CJ'" alt="Foto de Perfil" class="h-8 w-8 rounded-full object-cover border-2 border-accent mr-2 smoke-effect">
+                <span>Cristiano Jarbas <span class="text-primary">Tycoon</span></span>
+            </h1>
+        </div>
+    </header>
 
-    <main class="flex-grow p-4">
-        <div id="game-status" class="text-center mb-4 text-sm md:text-lg font-semibold text-gray-400">
-            Mercado: <span id="market-display" class="text-white">...</span> | Orçamento Máximo: <span id="budget-display" class="text-white">...</span>
-        </div>
+    <main class="flex-grow p-4">
+        <div id="game-status" class="text-center mb-4 text-sm md:text-lg font-semibold text-gray-400">
+            Mercado: <span id="market-display" class="text-white">...</span> | Orçamento Máximo: <span id="budget-display" class="text-white">...</span>
+        </div>
 
-        <div class="game-board">
-            <div id="space-start" class="board-space space-start" onclick="handleSpaceClick('start')">
-                <i class="ph ph-flag-checkered text-3xl mb-1"></i>
-                INICIAR
-            </div>
-            
-            <div id="space-ranking" class="board-space zone-1" onclick="renderCenterContent('ranking')" style="grid-area: 2 / 5 / 3 / 6; background-color: #374151;">
-                <i class="ph ph-trophy text-2xl mb-1"></i> RANKING
-            </div>
+        <div class="game-board">
+            <div id="space-start" class="board-space space-start" onclick="handleSpaceClick('start')">
+                <i class="ph ph-flag-checkered text-3xl mb-1"></i>
+                INICIAR
+            </div>
+            
+            <div id="space-ranking" class="board-space zone-1" onclick="renderCenterContent('ranking')" style="grid-area: 2 / 5 / 3 / 6; background-color: #374151;">
+                <i class="ph ph-trophy text-2xl mb-1"></i> RANKING
+            </div>
 
-            <div id="space-calculator" class="board-space zone-1" onclick="renderCenterContent('calculator')" style="grid-area: 3 / 5 / 4 / 6; background-color: #374151;">
-                <i class="ph ph-calculator text-2xl mb-1"></i> CALCULADORA
-            </div>
-            
-            <div id="space-social" class="board-space zone-1" onclick="renderCenterContent('social')" style="grid-area: 4 / 5 / 5 / 6; background-color: #059669;"> 
-                <i class="ph ph-share-network text-2xl mb-1"></i> SOCIAL
-            </div>
+            <div id="space-calculator" class="board-space zone-1" onclick="renderCenterContent('calculator')" style="grid-area: 3 / 5 / 4 / 6; background-color: #374151;">
+                <i class="ph ph-calculator text-2xl mb-1"></i> CALCULADORA
+            </div>
+            
+            <div id="space-social" class="board-space zone-1" onclick="renderCenterContent('social')" style="grid-area: 4 / 5 / 5 / 6; background-color: #059669;"> 
+                <i class="ph ph-share-network text-2xl mb-1"></i> SOCIAL
+            </div>
 
-            <div id="space-1-1" class="board-space zone-1 disabled" onclick="handleSpaceClick('1-1')">
-                <i class="ph ph-money text-2xl mb-1"></i> Renda
-            </div>
-            <div id="space-1-2" class="board-space zone-1 disabled" onclick="handleSpaceClick('1-2')">
-                <i class="ph ph-piggy-bank text-2xl mb-1"></i> Dívidas
-            </div>
-            <div id="space-1-3" class="board-space zone-1 disabled" onclick="handleSpaceClick('1-3')">
-                <i class="ph ph-percent text-2xl mb-1"></i> Entrada
-            </div>
-            <div id="space-1-4" class="board-space zone-1 disabled" onclick="handleSpaceClick('1-4')">
-                <i class="ph ph-file-text text-2xl mb-1"></i> Pré-Aprovação
-            </div>
+            <div id="space-1-1" class="board-space zone-1 disabled" onclick="handleSpaceClick('1-1')">
+                <i class="ph ph-money text-2xl mb-1"></i> Renda
+            </div>
+            <div id="space-1-2" class="board-space zone-1 disabled" onclick="handleSpaceClick('1-2')">
+                <i class="ph ph-piggy-bank text-2xl mb-1"></i> Dívidas
+            </div>
+            <div id="space-1-3" class="board-space zone-1 disabled" onclick="handleSpaceClick('1-3')">
+                <i class="ph ph-percent text-2xl mb-1"></i> Entrada
+            </div>
+            <div id="space-1-4" class="board-space zone-1 disabled" onclick="handleSpaceClick('1-4')">
+                <i class="ph ph-file-text text-2xl mb-1"></i> Pré-Aprovação
+            </div>
 
-            <div id="space-2-1" class="board-space zone-2 disabled" onclick="handleSpaceClick('2-1')">
-                <i class="ph ph-magnifying-glass text-2xl mb-1"></i> Buscar
-            </div>
-            <div id="space-2-2" class="board-space zone-2 disabled" onclick="handleSpaceClick('2-2')">
-                <i class="ph ph-chart-bar text-2xl mb-1"></i> Comparar
-            </div>
-            <div id="space-2-3" class="board-space zone-2 disabled" onclick="handleSpaceClick('2-3')">
-                <i class="ph ph-house-line text-2xl mb-1"></i> Selecionar
-            </div>
-            <div id="space-2-4" class="board-space zone-2 disabled" onclick="handleSpaceClick('2-4')">
-                <i class="ph ph-pencil-line text-2xl mb-1"></i> Oferta
-            </div>
+            <div id="space-2-1" class="board-space zone-2 disabled" onclick="handleSpaceClick('2-1')">
+                <i class="ph ph-magnifying-glass text-2xl mb-1"></i> Buscar
+            </div>
+            <div id="space-2-2" class="board-space zone-2 disabled" onclick="handleSpaceClick('2-2')">
+                <i class="ph ph-chart-bar text-2xl mb-1"></i> Comparar
+            </div>
+            <div id="space-2-3" class="board-space zone-2 disabled" onclick="handleSpaceClick('2-3')">
+                <i class="ph ph-house-line text-2xl mb-1"></i> Selecionar
+            </div>
+            <div id="space-2-4" class="board-space zone-2 disabled" onclick="handleSpaceClick('2-4')">
+                <i class="ph ph-pencil-line text-2xl mb-1"></i> Oferta
+            </div>
 
-            <div id="space-3-1" class="board-space zone-3 disabled" onclick="handleSpaceClick('3-1')">
-                <i class="ph ph-toolbox text-2xl mb-1"></i> Inspeção
-            </div>
-            <div id="space-3-2" class="board-space zone-3 disabled" onclick="handleSpaceClick('3-2')">
-                <i class="ph ph-bank text-2xl mb-1"></i> Avaliação
-            </div>
-            <div id="space-3-3" class="board-space zone-3 disabled" onclick="handleSpaceClick('3-3')">
-                <i class="ph ph-file-pdf text-2xl mb-1"></i> Fechamento
-            </div>
-            <div id="space-3-4" class="board-space zone-3 disabled" onclick="handleSpaceClick('3-4')">
-                <i class="ph ph-key text-2xl mb-1"></i> Chaves!
-            </div>
+            <div id="space-3-1" class="board-space zone-3 disabled" onclick="handleSpaceClick('3-1')">
+                <i class="ph ph-toolbox text-2xl mb-1"></i> Inspeção
+            </div>
+            <div id="space-3-2" class="board-space zone-3 disabled" onclick="handleSpaceClick('3-2')">
+                <i class="ph ph-bank text-2xl mb-1"></i> Avaliação
+            </div>
+            <div id="space-3-3" class="board-space zone-3 disabled" onclick="handleSpaceClick('3-3')">
+                <i class="ph ph-file-pdf text-2xl mb-1"></i> Fechamento
+            </div>
+            <div id="space-3-4" class="board-space zone-3 disabled" onclick="handleSpaceClick('3-4')">
+                <i class="ph ph-key text-2xl mb-1"></i> Chaves!
+            </div>
 
-            <div class="center-display">
-                <div id="center-content" class="center-content">
-                    </div>
-            </div>
-        </div>
-    </main>
+            <div class="center-display">
+                <div id="center-content" class="center-content">
+                    </div>
+            </div>
+        </div>
+    </main>
 
-    <div id="modal" class="fixed inset-0 bg-black bg-opacity-80 hidden items-center justify-center p-4 z-50">
-        <div class="bg-white text-gray-900 w-full max-w-lg rounded-2xl shadow-2xl overflow-hidden">
-            <div class="bg-gray-100 px-6 py-4 border-b border-gray-200 flex justify-between items-center">
-                <h3 id="modal-title" class="text-lg font-bold flex items-center"></h3>
-                <button onclick="hideModal()" class="text-gray-500 hover:text-red-500">
-                    <i class="ph ph-x text-xl"></i>
-                </button>
-            </div>
-            <div id="modal-body" class="p-6"></div>
-            <div id="modal-footer" class="px-6 py-4 bg-gray-50 flex justify-end">
-                <button onclick="hideModal()" class="btn-primary">OK</button>
-            </div>
-        </div>
-    </div>
+    <div id="modal" class="fixed inset-0 bg-black bg-opacity-80 hidden items-center justify-center p-4 z-50">
+        <div class="bg-white text-gray-900 w-full max-w-lg rounded-2xl shadow-2xl overflow-hidden">
+            <div class="bg-gray-100 px-6 py-4 border-b border-gray-200 flex justify-between items-center">
+                <h3 id="modal-title" class="text-lg font-bold flex items-center"></h3>
+                <button onclick="hideModal()" class="text-gray-500 hover:text-red-500">
+                    <i class="ph ph-x text-xl"></i>
+                </button>
+            </div>
+            <div id="modal-body" class="p-6"></div>
+            <div id="modal-footer" class="px-6 py-4 bg-gray-50 flex justify-end">
+                <button onclick="hideModal()" class="btn-primary">OK</button>
+            </div>
+        </div>
+    </div>
 
-    <script>
-        // 2. INICIALIZAÇÃO FIREBASE (SUBSTITUA PELAS SUAS CHAVES AQUI!)
-        const firebaseConfig = {
-            apiKey: "[SUAS CHAVES DO FIREBASE AQUI]", 
-            authDomain: "[SUAS CHAVES DO FIREBASE AQUI]",
-            projectId: "[SUAS CHAVES DO FIREBASE AQUI]",
-            storageBucket: "[SUAS CHAVES DO FIREBASE AQUI]",
-            messagingSenderId: "[SUAS CHAVES DO FIREBASE AQUI]",
-            appId: "[SUAS CHAVES DO FIREBASE AQUI]"
-        };
+    <script>
+        // 2. INICIALIZAÇÃO FIREBASE (SUBSTITUA PELAS SUAS CHAVES AQUI!)
+        const firebaseConfig = {
+            apiKey: "[SUAS CHAVES DO FIREBASE AQUI]", 
+            authDomain: "[SUAS CHAVES DO FIREBASE AQUI]",
+            projectId: "[SUAS CHAVES DO FIREBASE AQUI]",
+            storageBucket: "[SUAS CHAVES DO FIREBASE AQUI]",
+            messagingSenderId: "[SUAS CHAVES DO FIREBASE AQUI]",
+            appId: "[SUAS CHAVES DO FIREBASE AQUI]"
+        };
 
-        let db;
-        try {
-            if (typeof firebase !== 'undefined' && !firebase.apps.length) {
-                firebase.initializeApp(firebaseConfig);
-            }
-            if (typeof firebase !== 'undefined') {
-                db = firebase.firestore();
-            }
-        } catch(e) {
-            console.error("Erro ao inicializar Firebase: ", e);
-            // Se o Firebase falhar, o jogo pode continuar, mas o ranking não funcionará.
-        }
-        
-        // --- CONSTANTES E CONFIGURAÇÃO ---
-        
-        // Taxas baseadas no Credit Score
-        const CREDIT_RATES = {
-            excellent: { min: 760, rate: 0.058, name: "Excelente" }, 
-            good: { min: 670, rate: 0.065, name: "Bom" },
-            fair: { min: 580, rate: 0.075, name: "Regular" },
-            poor: { min: 300, rate: 0.085, name: "Ruim" } 
-        };
+        let db;
+        try {
+            if (typeof firebase !== 'undefined' && !firebase.apps.length) {
+                firebase.initializeApp(firebaseConfig);
+            }
+            if (typeof firebase !== 'undefined') {
+                db = firebase.firestore();
+            }
+        } catch(e) {
+            console.error("Erro ao inicializar Firebase: ", e);
+        }
+        
+        // --- CONSTANTES E CONFIGURAÇÃO ---
+        
+        // Taxas baseadas no Credit Score
+        const CREDIT_RATES = {
+            excellent: { min: 760, rate: 0.058, name: "Excelente" }, 
+            good: { min: 670, rate: 0.065, name: "Bom" },
+            fair: { min: 580, rate: 0.075, name: "Regular" },
+            poor: { min: 300, rate: 0.085, name: "Ruim" } 
+        };
 
-        const MARKET_SCENARIOS = {
-            easy: {
-                name: "Subúrbio Inicial", priceRange: [250000, 350000], taxRate: 0.0085, interestRate: 0.0625,
-                startSavings: 30000, startIncome: 8000, startDebts: { Cartão: 500, Carro: 300, Estudo: 100 }, scoreMult: 1.0
-            },
-            medium: {
-                name: "Metrópole Quente", priceRange: [400000, 650000], taxRate: 0.0120, interestRate: 0.0650,
-                startSavings: 70000, startIncome: 14000, startDebts: { Cartão: 1000, Carro: 500, Estudo: 250 }, scoreMult: 1.5
-            },
-            hard: {
-                name: "Luxo Litorâneo", priceRange: [800000, 1200000], taxRate: 0.0065, interestRate: 0.0675,
-                startSavings: 150000, startIncome: 25000, startDebts: { Cartão: 1500, Carro: 700, Estudo: 500 }, scoreMult: 2.0
-            }
-        };
+        const MARKET_SCENARIOS = {
+            easy: {
+                name: "Subúrbio Inicial", priceRange: [250000, 350000], taxRate: 0.0085, interestRate: 0.0625,
+                startSavings: 30000, startIncome: 8000, startDebts: { Cartão: 500, Carro: 300, Estudo: 100 }, scoreMult: 1.0
+            },
+            medium: {
+                name: "Metrópole Quente", priceRange: [400000, 650000], taxRate: 0.0120, interestRate: 0.0650,
+                startSavings: 70000, startIncome: 14000, startDebts: { Cartão: 1000, Carro: 500, Estudo: 250 }, scoreMult: 1.5
+            },
+            hard: {
+                name: "Luxo Litorâneo", priceRange: [800000, 1200000], taxRate: 0.0065, interestRate: 0.0675,
+                startSavings: 150000, startIncome: 25000, startDebts: { Cartão: 1500, Carro: 700, Estudo: 500 }, scoreMult: 2.0
+            }
+        };
 
-        const stageOrder = ['start', '1-1', '1-2', '1-3', '1-4', '2-1', '2-2', '2-3', '2-4', '3-1', '3-2', '3-3', '3-4', 'complete'];
-        const PMI_RATE = 0.005;
-        const INSURANCE_COST = 1800;
-        const MAX_DTI = 0.43; // Debt-to-Income Ratio
+        const stageOrder = ['start', '1-1', '1-2', '1-3', '1-4', '2-1', '2-2', '2-3', '2-4', '3-1', '3-2', '3-3', '3-4', 'complete'];
+        const PMI_RATE = 0.005;
+        const INSURANCE_COST = 1800;
+        const MAX_DTI = 0.43; // Debt-to-Income Ratio
 
-        let gameState = {
-            stage: 'start',
-            market: null,
-            income: 0,
-            savings: 0,
-            currentDebts: {},
-            downPaymentPct: 0.20,
-            maxOfferPrice: 0,
-            property: null,
-            offer: {},
-            inspectionIssues: null,
-            appraisalValue: 0,
-            startTime: null, 
-            endTime: null, 
-            finalScore: 0,
-            playerName: "Jogador",
-            creditScore: 700, 
-            effectiveRate: 0, 
-        };
+        let gameState = {
+            stage: 'intro', // Começa na tela de introdução/guia
+            market: null,
+            income: 0,
+            savings: 0,
+            currentDebts: {},
+            downPaymentPct: 0.20,
+            maxOfferPrice: 0,
+            property: null,
+            offer: {},
+            inspectionIssues: null,
+            appraisalValue: 0,
+            startTime: null, 
+            endTime: null, 
+            finalScore: 0,
+            playerName: "Jogador",
+            creditScore: 700, 
+            effectiveRate: 0, 
+        };
 
-        let currentListings = [];
+        let currentListings = [];
+        let houseIndex = 0; // Para simular diferentes casas na busca
 
-        // --- UTILS ---
-        const formatCurrency = (amt) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 }).format(amt);
-        const formatPercent = (val) => (val * 100).toFixed(2) + '%';
-        const roundToNearest = (val, n) => Math.round(val / n) * n;
+        // --- UTILS ---
+        const formatCurrency = (amt) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 }).format(amt);
+        const formatCurrencyFloat = (amt) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(amt);
+        const formatPercent = (val) => (val * 100).toFixed(2) + '%';
+        const formatPercentPrecision = (val) => (val * 100).toFixed(3) + '%';
+        const roundToNearest = (val, n) => Math.round(val / n) * n;
 
-        const formatTime = (ms) => {
-            const totalSeconds = Math.floor(ms / 1000);
-            const minutes = Math.floor(totalSeconds / 60);
-            const seconds = totalSeconds % 60;
-            return `${minutes}m ${seconds}s`;
-        };
+        const formatTime = (ms) => {
+            if (ms < 0) return "0m 0s";
+            const totalSeconds = Math.floor(ms / 1000);
+            const minutes = Math.floor(totalSeconds / 60);
+            const seconds = totalSeconds % 60;
+            return `${minutes}m ${seconds}s`;
+        };
 
-        // Função para obter a taxa de juros baseada no Credit Score
-        const getEffectiveRate = (score) => {
-            if (score >= CREDIT_RATES.excellent.min) {
-                return CREDIT_RATES.excellent.rate;
-            } else if (score >= CREDIT_RATES.good.min) {
-                return CREDIT_RATES.good.rate;
-            } else if (score >= CREDIT_RATES.fair.min) {
-                return CREDIT_RATES.fair.rate;
-            } else {
-                return CREDIT_RATES.poor.rate;
-            }
-        };
+        // Função para obter a taxa de juros baseada no Credit Score
+        const getEffectiveRate = (score) => {
+            if (score >= CREDIT_RATES.excellent.min) {
+                return CREDIT_RATES.excellent.rate;
+            } else if (score >= CREDIT_RATES.good.min) {
+                return CREDIT_RATES.good.rate;
+            } else if (score >= CREDIT_RATES.fair.min) {
+                return CREDIT_RATES.fair.rate;
+            } else {
+                return CREDIT_RATES.poor.rate;
+            }
+        };
 
-        // --- LÓGICA DE CÁLCULO DE ORÇAMENTO (DTI) ---
-        const calculateMaxBudget = () => {
-            const marketData = MARKET_SCENARIOS[gameState.market];
-            const annualRate = getEffectiveRate(gameState.creditScore);
-            const monthlyRate = annualRate / 12;
-            const totalPayments = 30 * 12; // Padrão de 30 anos
+        // --- LÓGICA DE CÁLCULO DE ORÇAMENTO (DTI) ---
+        const calculateMaxBudget = () => {
+            const marketData = MARKET_SCENARIOS[gameState.market];
+            const annualRate = getEffectiveRate(gameState.creditScore);
+            const monthlyRate = annualRate / 12;
+            const totalPayments = 30 * 12; // Padrão de 30 anos
 
-            // 1. Calcular a Dívida Mensal Atual (Monthly Debt)
-            const totalMonthlyDebt = Object.values(gameState.currentDebts).reduce((sum, debt) => sum + debt, 0);
+            // 1. Calcular a Dívida Mensal Atual (Monthly Debt)
+            const totalMonthlyDebt = Object.values(gameState.currentDebts).reduce((sum, debt) => sum + debt, 0);
 
-            // 2. Calcular o Pagamento Máximo Permitido para a Nova Hipoteca
-            const maxMonthlyObligation = gameState.income * MAX_DTI;
-            const maxMortgagePayment = maxMonthlyObligation - totalMonthlyDebt;
+            // 2. Calcular o Pagamento Máximo Permitido para a Nova Hipoteca
+            const maxMonthlyObligation = gameState.income * MAX_DTI;
+            const maxMortgagePayment = maxMonthlyObligation - totalMonthlyDebt;
 
-            if (maxMortgagePayment <= 0) {
-                saveGameState({ maxOfferPrice: 0 });
-                return 0;
-            }
+            if (maxMortgagePayment <= 0) {
+                saveGameState({ maxOfferPrice: 0 });
+                return 0;
+            }
 
-            // 3. Estimar componentes que variam com o preço (Taxas e Seguro)
-            // Custo Mensal Estimado de Taxas e Seguro (Property Taxes + Insurance)
-            const monthlyTaxInsurance = (marketData.priceRange[1] * marketData.taxRate / 12) + (INSURANCE_COST / 12);
-            const maxLoanPaymentPrincipalInterest = maxMortgagePayment - monthlyTaxInsurance;
+            // 3. Estimar componentes que variam com o preço (Taxas e Seguro)
+            // Custo Mensal Estimado de Taxas e Seguro (Property Taxes + Insurance)
+            const monthlyTaxInsurance = (marketData.priceRange[1] * marketData.taxRate / 12) + (INSURANCE_COST / 12);
+            const maxLoanPaymentPrincipalInterest = maxMortgagePayment - monthlyTaxInsurance;
 
-            if (maxLoanPaymentPrincipalInterest <= 0) {
-                saveGameState({ maxOfferPrice: 0 });
-                return 0;
-            }
+            if (maxLoanPaymentPrincipalInterest <= 0) {
+                saveGameState({ maxOfferPrice: 0 });
+                return 0;
+            }
 
-            // 4. Reverso da Fórmula de Hipoteca para achar o Valor Máximo do Empréstimo (L)
-            const L = maxLoanPaymentPrincipalInterest * (Math.pow(1 + monthlyRate, totalPayments) - 1) / (monthlyRate * Math.pow(1 + monthlyRate, totalPayments));
+            // 4. Reverso da Fórmula de Hipoteca para achar o Valor Máximo do Empréstimo (L)
+            const L = maxLoanPaymentPrincipalInterest * (Math.pow(1 + monthlyRate, totalPayments) - 1) / (monthlyRate * Math.pow(1 + monthlyRate, totalPayments));
 
-            // 5. Calcular o Preço Máximo da Oferta (Loan + Down Payment)
-            // Considerando o Down Payment de 20% como padrão para o cálculo inicial
-            const maxPrice = L / (1 - gameState.downPaymentPct);
+            // 5. Calcular o Preço Máximo da Oferta (Loan + Down Payment)
+            // Considerando o Down Payment de 20% como padrão para o cálculo inicial
+            const maxPrice = L / (1 - gameState.downPaymentPct);
 
-            // Arredonda para um valor mais realista
-            const finalMaxOffer = roundToNearest(maxPrice, 5000);
-            
-            saveGameState({ 
-                maxOfferPrice: finalMaxOffer,
-                effectiveRate: annualRate
-            });
-            return finalMaxOffer;
-        };
+            // Arredonda para um valor mais realista
+            const finalMaxOffer = roundToNearest(maxPrice, 5000);
+            
+            saveGameState({ 
+                maxOfferPrice: finalMaxOffer,
+                effectiveRate: annualRate
+            });
+            return finalMaxOffer;
+        };
+        
+        // Calcula a parcela mensal completa (Principal, Juros, Taxas, Seguro)
+        const calculateTotalMonthlyPayment = (price, downPaymentPct, appraisalValue) => {
+            const marketData = MARKET_SCENARIOS[gameState.market];
+            const loanAmount = Math.min(price, appraisalValue || price) * (1 - downPaymentPct);
+            const annualRate = getEffectiveRate(gameState.creditScore);
+            const monthlyRate = annualRate / 12;
+            const totalPayments = 30 * 12;
 
-        // --- LÓGICA DE PONTUAÇÃO ---
-        const calculateScore = () => {
-            if (!gameState.property || !gameState.market || !gameState.startTime || !gameState.endTime) {
-                return 0;
-            }
+            let PI_payment;
+            if (monthlyRate === 0) {
+                PI_payment = loanAmount / totalPayments;
+            } else {
+                PI_payment = loanAmount * (monthlyRate * Math.pow(1 + monthlyRate, totalPayments)) / (Math.pow(1 + monthlyRate, totalPayments) - 1);
+            }
+            
+            const taxes = (price * marketData.taxRate) / 12;
+            const insurance = INSURANCE_COST / 12;
+            
+            let pmi = 0;
+            if (downPaymentPct < 0.20) {
+                pmi = loanAmount * PMI_RATE / 12;
+            }
 
-            const marketData = MARKET_SCENARIOS[gameState.market];
-            const baseScore = gameState.property.price;
-            const marketMultiplier = marketData.scoreMult;
-            
-            const timeElapsedMs = gameState.endTime - gameState.startTime;
-            const timePenaltyFactor = Math.min(1, 1000000 / timeElapsedMs);
-            
-            const finalScore = Math.round(baseScore * marketMultiplier * timePenaltyFactor);
+            return {
+                PI: PI_payment,
+                Taxes: taxes,
+                Insurance: insurance,
+                PMI: pmi,
+                Total: PI_payment + taxes + insurance + pmi
+            };
+        };
 
-            saveGameState({ finalScore: finalScore });
-            return finalScore;
-        };
+        // --- LÓGICA DE GERAÇÃO DE PROPRIEDADE (SIMPLIFICADA) ---
+        const generateListings = (count = 3) => {
+            const [min, max] = MARKET_SCENARIOS[gameState.market].priceRange;
+            const listings = [];
+            for (let i = 0; i < count; i++) {
+                const price = roundToNearest(min + (Math.random() * (max - min)), 1000);
+                const beds = Math.floor(2 + Math.random() * 3); // 2 a 4 quartos
+                const baths = Math.floor(1 + Math.random() * 2); // 1 a 2 banheiros
+                const size = roundToNearest(100 + Math.random() * 150, 10); // 100 a 250 m²
+                
+                // Variância de Avaliação (Pode ser maior ou menor que o preço de lista)
+                const appraisalFactor = 0.95 + Math.random() * 0.10; // -5% a +5%
+                const appraisal = roundToNearest(price * appraisalFactor, 1000);
 
-        // --- FIREBASE (RANKING) ---
-        const saveRanking = async (name, score, time) => {
-            if (!db) return showModal("Erro de Ranking", "O serviço de ranking não está ativo.");
-            try {
-                await db.collection("rankings").add({
-                    name: name,
-                    score: score,
-                    timeMs: time,
-                    market: gameState.market,
-                    date: firebase.firestore.FieldValue.serverTimestamp()
-                });
-            } catch (e) {
-                console.error("Erro ao salvar o ranking: ", e);
-                showModal("Erro de Ranking", "Não foi possível salvar sua pontuação no servidor.");
-            }
-        };
+                // Problemas de Inspeção (1 a 3 problemas)
+                const issues = Math.floor(1 + Math.random() * 3);
 
-        const loadRanking = async () => {
-            if (!db) return [];
-            try {
-                const snapshot = await db.collection("rankings")
-                                        .orderBy("score", "desc")
-                                        .limit(10)
-                                        .get();
-                
-                const rankings = snapshot.docs.map(doc => ({
-                    id: doc.id,
-                    ...doc.data()
-                }));
-                return rankings;
-            } catch (e) {
-                console.error("Erro ao carregar o ranking: ", e);
-                return [];
-            }
-        };
+                listings.push({ id: `H${houseIndex++}`, price, beds, baths, size, appraisal, issues });
+            }
+            currentListings = listings;
+        };
 
-        // --- CORE FUNCTIONS ---
-        const getNextStage = (current) => {
-            const idx = stageOrder.indexOf(current);
-            return (idx !== -1 && idx < stageOrder.length - 1) ? stageOrder[idx + 1] : 'complete';
-        };
+        // --- LÓGICA DE PONTUAÇÃO ---
+        const calculateScore = () => {
+            if (!gameState.property || !gameState.market || !gameState.startTime || !gameState.endTime) {
+                return 0;
+            }
 
-        const saveGameState = (updates) => {
-            gameState = { ...gameState, ...updates };
-            updateUI();
-        };
+            const marketData = MARKET_SCENARIOS[gameState.market];
+            const propertyPrice = gameState.property.price;
+            const offerPrice = gameState.offer.price || propertyPrice;
+            const timeElapsedMs = gameState.endTime - gameState.startTime;
+            
+            // Bônus/Penalidade por negociação
+            const negotiationFactor = 1 + ((propertyPrice - offerPrice) / propertyPrice) * 0.5; // Mais desconto = mais pontos
+            
+            // Fator de Tempo (quanto mais rápido, maior o fator, até um máximo)
+            const timePenaltyFactor = Math.min(1.5, 3000000 / timeElapsedMs); // 3 milhões de ms = 50 minutos
+            
+            let baseScore = Math.round(propertyPrice * negotiationFactor * timePenaltyFactor);
+            baseScore *= marketData.scoreMult; // Multiplicador de mercado
 
-        const updateUI = () => {
-            const mkt = gameState.market ? MARKET_SCENARIOS[gameState.market].name : 'N/A';
-            const budget = gameState.maxOfferPrice > 0 ? formatCurrency(gameState.maxOfferPrice) : 'N/A';
-            document.getElementById('market-display').innerText = mkt;
-            document.getElementById('budget-display').innerText = budget;
-
-            // 1. Limpa todas as classes de destaque e desativa a maioria
-            document.querySelectorAll('.board-space').forEach(el => {
-                el.classList.remove('stage-active');
-                // Mantemos o disabled aqui para o fluxo principal
-                if (!['ranking', 'calculator', 'social', 'start'].includes(el.id.replace('space-', ''))) {
-                    el.classList.add('disabled');
-                }
-            });
-
-            // Se o jogo não começou, apenas o 'start' é ativo
-            if (gameState.stage === 'start') {
-                document.getElementById('space-start').classList.remove('disabled');
-                document.getElementById('space-start').classList.add('stage-active');
-                return;
-            } 
-            
-            // Se o jogo está em andamento
-            if (gameState.stage !== 'complete') {
-                const currentId = `space-${gameState.stage}`;
-                const nextStage = getNextStage(gameState.stage);
-                const nextId = `space-${nextStage}`;
-                
-                // Ativa a etapa atual (o usuário pode clicar para ver o resumo/informações)
-                const currEl = document.getElementById(currentId);
-                if(currEl) currEl.classList.remove('disabled'); 
-                
-                // Aplica o destaque na PRÓXIMA etapa, indicando o alvo
-                const nextEl = document.getElementById(nextId);
-                if(nextEl) {
-                    nextEl.classList.remove('disabled');
-                    nextEl.classList.add('stage-active'); // DESTAQUE: PRÓXIMO PASSO
-                }
-            }
-            
-            // Botões de ranking, calculadora e social sempre ativos
-            document.getElementById('space-ranking').classList.remove('disabled');
-            document.getElementById('space-calculator').classList.remove('disabled');
-            document.getElementById('space-social').classList.remove('disabled');
-        };
-
-        window.handleSpaceClick = (id) => {
-            // Lógica para capturar e salvar os dados ANTES de mudar de tela
-            if (id === getNextStage(gameState.stage) || id === 'complete') { // Inclui 'complete' para o fim do jogo
-                if (gameState.stage === '1-1') {
-                    const newIncome = parseFloat(document.getElementById('input-income').value);
-                    const newSavings = parseFloat(document.getElementById('input-savings').value);
-                    const newCreditScore = parseFloat(document.getElementById('input-credit-score').value); 
-                    
-                    saveGameState({ 
-                        income: newIncome || 0, 
-                        savings: newSavings || 0,
-                        creditScore: newCreditScore || 700 
-                    }); 
-                }
-                if (gameState.stage === '1-2') {
-                    let newDebts = {};
-                    document.querySelectorAll('.debt-input').forEach(input => {
-                        newDebts[input.name] = parseFloat(input.value) || 0;
-                    });
-                    saveGameState({ currentDebts: newDebts });
-                    // Calcula o orçamento máximo após atualizar as dívidas
-                    calculateMaxBudget();
-                }
-                
-                if (id === 'complete') {
-                    saveGameState({ endTime: Date.now() });
-                    calculateScore();
-                    renderCenterContent(id);
-                    return; 
-                }
-                
-                saveGameState({ stage: id });
-            }
-
-            if (!document.getElementById(`space-${id}`).classList.contains('disabled')) {
-                renderCenterContent(id);
-            }
-        };
-
-        window.selectMarket = (marketKey) => {
-            const mkt = MARKET_SCENARIOS[marketKey];
-            saveGameState({ 
-                market: marketKey,
-                income: mkt.startIncome,
-                savings: mkt.startSavings,
-                currentDebts: mkt.startDebts,
-                stage: '1-1' // Avança para a primeira etapa
-            });
-            renderCenterContent('1-1'); // Renderiza o conteúdo 1-1
-            showModal("Mercado Selecionado", `Bem-vindo ao mercado **${mkt.name}**! Seus dados iniciais foram carregados. Prossiga para a auditoria financeira.`, "OK");
-        };
-
-        window.advanceStage = (updates = {}) => {
-            const next = getNextStage(gameState.stage);
-            saveGameState({ stage: next, ...updates });
-            renderCenterContent(next);
-        };
-
-        window.resetGame = () => {
-            location.reload();
-        };
-
-        window.submitScore = () => {
-            const name = document.getElementById('player-name').value;
-            if (name.trim()) {
-                saveRanking(name, gameState.finalScore, gameState.endTime - gameState.startTime);
-                showModal("Sucesso!", "Sua pontuação foi enviada para o Ranking!", "OK");
-                document.getElementById('player-name').disabled = true;
-            } else {
-                showModal("Atenção", "Por favor, insira um nome para o Ranking.", "OK");
-            }
-        };
-
-        // Função de Cálculo de Pagamento Mensal de Hipoteca
-        window.calculateMortgage = () => {
-            const loan = parseFloat(document.getElementById('calc-loan').value);
-            const annualRatePct = parseFloat(document.getElementById('calc-rate').value) / 100;
-            const termYears = parseFloat(document.getElementById('calc-term').value);
-
-            if (isNaN(loan) || isNaN(annualRatePct) || isNaN(termYears) || loan <= 0 || termYears <= 0) {
-                document.getElementById('calc-result').classList.add('hidden');
-                return;
-            }
-
-            const monthlyRate = annualRatePct / 12;
-            const totalPayments = termYears * 12;
-
-            let monthlyPayment;
-            if (monthlyRate === 0) {
-                monthlyPayment = loan / totalPayments;
-            } else {
-                // Fórmula do Pagamento Mensal
-                monthlyPayment = loan * (monthlyRate * Math.pow(1 + monthlyRate, totalPayments)) / (Math.pow(1 + monthlyRate, totalPayments) - 1);
-            }
-            
-            document.getElementById('monthly-payment-display').innerText = formatCurrency(monthlyPayment);
-            document.getElementById('calc-result').classList.remove('hidden');
-        };
-
-        // Funções Modal
-        window.showModal = (title, body, buttonText = "Fechar") => {
-            document.getElementById('modal-title').innerHTML = `<i class="ph ph-info text-2xl mr-2"></i> ${title}`;
-            document.getElementById('modal-body').innerHTML = `<p class="text-base text-gray-700">${body}</p>`;
-            document.getElementById('modal-footer').querySelector('.btn-primary').innerText = buttonText;
-            document.getElementById('modal').classList.remove('hidden');
-            document.getElementById('modal').classList.add('flex');
-        };
-
-        window.hideModal = () => {
-            document.getElementById('modal').classList.add('hidden');
-            document.getElementById('modal').classList.remove('flex');
-        };
-
-        // --- RENDER FUNCTIONS ---
-        const renderCenterContent = async (id) => {
-            const content = document.getElementById('center-content');
-            let html = '';
-
-            switch(id) {
-                case 'intro': // MENSAGEM DE BOAS-VINDAS EXPLÍCITA
-                    html = `
-                        <div class="text-3xl font-bold text-white mb-4">Bem-vindo ao Cristiano Jarbas Tycoon</div>
-                        <p class="text-gray-400 mb-6">Este é o seu jogo de simulação de compra de imóvel. Comece selecionando o Mercado de atuação no botão **INICIAR** (canto inferior direito).</p>
-                        <p class="text-gray-400">Aqui você irá aprender brincando todo o processo para a compra da sua casa ou investimento!</p>
-                    `;
-                    break;
-                case 'start':
-                    saveGameState({ startTime: Date.now() }); 
-                    html = `
-                        <div class="mb-6 relative">
-                            <img src="./logo.png" onerror="this.onerror=null; this.src='https://via.placeholder.com/128x128?text=LOGO'" alt="Logo da Imobiliária" class="w-32 h-32 object-contain mx-auto smoke-effect">
-                        </div>
-                        <h2 class="text-3xl font-black text-secondary mb-4">Selecione o Mercado</h2>
-                        <div class="grid gap-4 w-full">
-                            ${Object.entries(MARKET_SCENARIOS).map(([k, v]) => `
-                                <button onclick="selectMarket('${k}')" class="bg-gray-800 p-4 rounded-xl hover:bg-gray-700 border border-gray-600 text-left">
-                                    <div class="font-bold text-accent text-lg">${v.name}</div>
-                                    <div class="text-sm text-gray-400">Faixa de Preço: ${formatCurrency(v.priceRange[0])} - ${formatCurrency(v.priceRange[1])}</div>
-                                    <div class="text-sm text-gray-400">Juros Base: ${(v.interestRate * 100).toFixed(2)}%</div>
-                                </button>
-                            `).join('')}
-                        </div>
-                    `;
-                    break;
-                case 'ranking':
-                    html = `
-                        <h3 class="text-xl font-bold mb-4">🏆 Melhores Corretores</h3>
-                        <div id="ranking-list-container" class="w-full text-left">Carregando ranking...</div>
-                    `;
-                    content.innerHTML = html;
-                    const rankings = await loadRanking();
-                    const listContainer = document.getElementById('ranking-list-container');
-                    
-                    if (rankings.length === 0) {
-                        listContainer.innerHTML = '<p class="text-gray-400">Nenhum score encontrado ainda.</p>';
-                    } else {
-                        listContainer.innerHTML = `
-                            <div class="ranking-list">
-                                ${rankings.map((r, index) => `
-                                    <div class="ranking-item ${index === 0 ? 'bg-accent text-gray-900 font-extrabold' : ''}">
-                                        <span class="w-1/6">${index + 1}°</span>
-                                        <span class="w-3/6">${r.name}</span>
-                                        <span class="w-2/6 text-right">${formatCurrency(r.score)}</span>
-                                    </div>
-                                `).join('')}
-                            </div>
-                        `;
-                    }
-                    return;
-
-                case 'calculator': 
-                    const currentRate = getEffectiveRate(gameState.creditScore);
-                    html = `
-                        <h3 class="text-xl font-bold mb-4">Calculadora de Prestação</h3>
-                        <p class="text-sm text-gray-400 mb-4">Simule o pagamento mensal. Sua Taxa Estimada: <span class="text-accent font-bold">${formatPercent(currentRate)}</span></p>
-
-                        <div class="w-full space-y-3">
-                            <label class="label-text">Valor do Empréstimo (R$)</label>
-                            <input type="number" id="calc-loan" class="input-field" value="300000">
-
-                            <label class="label-text">Taxa Anual (%)</label>
-                            <input type="number" id="calc-rate" class="input-field" step="0.001" value="${(currentRate * 100).toFixed(3)}">
-                            
-                            <label class="label-text">Prazo (Anos)</label>
-                            <input type="number" id="calc-term" class="input-field" value="30">
-                        </div>
-
-                        <button onclick="calculateMortgage()" class="btn-primary mt-4">Calcular Prestação</button>
-
-                        <div id="calc-result" class="mt-4 p-4 bg-gray-700 rounded-lg w-full font-bold text-lg hidden">
-                            Prestação Mensal: <span class="text-accent" id="monthly-payment-display">R$ 0</span>
-                        </div>
-                    `;
-                    break;
-                
-                case 'social':
-                    // ** LINKS DE MÍDIA SOCIAL ATUALIZADOS **
-                    const socialLinks = [
-                        { name: "Instagram", url: "https://www.instagram.com/cristianojarbasrealestate/", icon: "ph-instagram-logo" },
-                        { name: "Facebook", url: "https://www.facebook.com/cristianojarbasrealestate", icon: "ph-facebook-logo" },
-                        { name: "LinkedIn", url: "https://www.linkedin.com/in/cristiano-jarbas-931551b/", icon: "ph-linkedin-logo" },
-                        { name: "YouTube", url: "https://www.youtube.com/@cristianoJarbas", icon: "ph-youtube-logo" },
-                        { name: "Website/Blog", url: "https://www.seusite.com.br", icon: "ph-globe" },
-                        { name: "WhatsApp", url: "https://wa.me/55DDENÚMERO", icon: "ph-whatsapp-logo" }
-                    ];
-
-                    html = `
-                        <h3 class="text-2xl font-bold mb-6 text-accent">Conecte-se com o Corretor!</h3>
-                        <div class="space-y-4 w-full">
-                            ${socialLinks.map(link => `
-                                <a href="${link.url}" target="_blank" class="flex items-center p-4 bg-gray-700 rounded-xl hover:bg-gray-600 transition duration-200">
-                                    <i class="ph ${link.icon} text-3xl text-white mr-4"></i>
-                                    <span class="font-bold text-lg">${link.name}</span>
-                                    <i class="ph ph-arrow-right text-xl ml-auto text-gray-400"></i>
-                                </a>
-                            `).join('')}
-                        </div>
-                        <button onclick="hideModal()" class="btn-primary mt-6">Voltar ao Jogo</button>
-                    `;
-                    break;
-
-                case '3-4':
-                    if (!gameState.property) return 'Erro.';
-                    html = `
-                        <div class="animate-bounce text-6xl mb-4">🔑</div>
-                        <h2 class="text-3xl font-black text-white mb-2">CHAVES NA MÃO!</h2>
-                        <p class="mb-6">Você completou o ciclo de compra! Clique em Concluir para finalizar e ver seu score.</p>
-                        <button onclick="handleSpaceClick('complete')" class="btn-primary">Concluir Venda</button>
-                    `;
-                    break;
-                case 'complete':
-                    const finalScore = gameState.finalScore;
-                    const timeTaken = formatTime(gameState.endTime - gameState.startTime);
-                    
-                    html = `
-                        <h2 class="text-3xl font-black text-white mb-4">JOGO CONCLUÍDO!</h2>
-                        <p class="text-xl font-bold text-accent">SCORE FINAL</p>
-                        <p class="text-5xl font-black text-white mb-6">${formatCurrency(finalScore)}</p>
-                        
-                        <div class="text-sm text-gray-400 mb-6">
-                            Tempo Total: ${timeTaken}<br>
-                            Imóvel: ${formatCurrency(gameState.property ? gameState.property.price : 0)} (x ${MARKET_SCENARIOS[gameState.market].scoreMult.toFixed(1)} Mercado)
-                        </div>
-
-                        <input type="text" id="player-name" class="input-field text-center mb-4" placeholder="Seu Nome de Corretor" value="${gameState.playerName}">
-                        <button onclick="submitScore()" class="bg-green-600 text-white px-6 py-3 rounded-xl font-bold hover:bg-green-700 w-full mb-3">
-                            Enviar Score para o Ranking
-                        </button>
-                        <button onclick="resetGame()" class="bg-gray-600 text-white px-6 py-3 rounded-xl font-bold hover:bg-gray-700 w-full">
-                            Jogar Novamente
-                        </button>
-                    `;
-                    break;
-                case '1-1': // Renda, Poupança e Credit Score
-                    html = `
-                        <h3 class="text-xl font-bold mb-4">Auditoria Financeira e Crédito</h3>
-                        <p class="text-sm text-gray-400 mb-4">Informe seus dados para simular o empréstimo:</p>
-                        
-                        <div class="w-full">
-                            <label class="label-text">Renda Mensal (R$)</label>
-                            <input type="number" id="input-income" class="input-field" value="${gameState.income}">
-
-                            <label class="label-text">Poupança/Reservas (R$)</label>
-                            <input type="number" id="input-savings" class="input-field" value="${gameState.savings}">
-
-                            <label class="label-text">Credit Score (300-850)</label>
-                            <input type="number" id="input-credit-score" class="input-field" min="300" max="850" value="${gameState.creditScore}">
-                        </div>
-                        <button onclick="handleSpaceClick('1-2')" class="btn-primary mt-6">Próximo: Informar Dívidas</button>
-                    `;
-                    break;
-                case '1-2': // Dívidas Mensais (Monthly Debt Payments)
-                    const currentDebtsList = Object.keys(MARKET_SCENARIOS[gameState.market].startDebts);
-                    
-                    html = `
-                        <h3 class="text-xl font-bold mb-4">1-2: Dívidas (Debt-to-Income)</h3>
-                        <p class="text-sm text-gray-400 mb-4">Atualize os pagamentos mínimos mensais de TODAS as suas dívidas (cartão, carro, empréstimos, etc.).</p>
-                        
-                        <div class="w-full space-y-3">
-                            ${currentDebtsList.map(debtName => `
-                                <label class="label-text">${debtName} (R$ mensal)</label>
-                                <input type="number" name="${debtName}" class="input-field debt-input" value="${gameState.currentDebts[debtName] || 0}">
-                            `).join('')}
-                        </div>
-                        <button onclick="handleSpaceClick('1-3')" class="btn-primary mt-6">Próximo: Definir Entrada</button>
-                    `;
-                    break;
-                // Outros casos (1-3, 1-4, etc.) seriam adicionados aqui
-                default:
-                    html = `
-                        <div class="text-2xl font-bold mb-4">Aguardando Ação</div>
-                        <p class="text-gray-400">Clique na próxima etapa ativa no tabuleiro (destacada em azul).</p>
-                    `;
-                    break;
-            }
-
-            content.innerHTML = html;
-        };
+            // Penalidade por problemas de inspeção não negociados (-10% por problema)
+            // Se o preço final do contrato for o preço de lista E houver problemas.
+            if (gameState.property.issues > 0 && offerPrice >= propertyPrice) {
+                 baseScore *= (1 - (gameState.property.issues * 0.10));
+            }
 
 
-        // --- INICIALIZAÇÃO ---
-        window.onload = () => {
-            renderCenterContent('intro'); // Começa com a introdução
-            updateUI(); // Inicializa o tabuleiro
-        };
-    </script>
+            const finalScore = Math.round(baseScore);
+
+            saveGameState({ finalScore: finalScore });
+            return finalScore;
+        };
+
+        // --- FIREBASE (RANKING) ---
+        const saveRanking = async (name, score, time) => {
+            if (!db) return showModal("Erro de Ranking", "O serviço de ranking não está ativo.");
+            try {
+                await db.collection("rankings").add({
+                    name: name,
+                    score: score,
+                    timeMs: time,
+                    market: gameState.market,
+                    date: firebase.firestore.FieldValue.serverTimestamp()
+                });
+            } catch (e) {
+                console.error("Erro ao salvar o ranking: ", e);
+                showModal("Erro de Ranking", "Não foi possível salvar sua pontuação no servidor.");
+            }
+        };
+
+        const loadRanking = async () => {
+            if (!db) return [];
+            try {
+                const snapshot = await db.collection("rankings")
+                                             .orderBy("score", "desc")
+                                             .limit(10)
+                                             .get();
+                
+                const rankings = snapshot.docs.map(doc => ({
+                    id: doc.id,
+                    ...doc.data()
+                }));
+                return rankings;
+            } catch (e) {
+                console.error("Erro ao carregar o ranking: ", e);
+                return [];
+            }
+        };
+
+        // --- CORE FUNCTIONS ---
+        const getNextStage = (current) => {
+            const idx = stageOrder.indexOf(current);
+            return (idx !== -1 && idx < stageOrder.length - 1) ? stageOrder[idx + 1] : 'complete';
+        };
+
+        const saveGameState = (updates) => {
+            gameState = { ...gameState, ...updates };
+            updateUI();
+        };
+
+        const updateUI = () => {
+            const mkt = gameState.market ? MARKET_SCENARIOS[gameState.market].name : 'N/A';
+            const budget = gameState.maxOfferPrice > 0 ? formatCurrency(gameState.maxOfferPrice) : 'N/A';
+            document.getElementById('market-display').innerText = mkt;
+            document.getElementById('budget-display').innerText = budget;
+
+            document.querySelectorAll('.board-space').forEach(el => {
+                el.classList.remove('stage-active');
+                if (!['ranking', 'calculator', 'social'].includes(el.id.replace('space-', ''))) {
+                    el.classList.add('disabled');
+                }
+            });
+
+            const currentStageIndex = stageOrder.indexOf(gameState.stage);
+            
+            // Ativa todas as etapas até a atual (para visualização de resumo)
+            for (let i = 0; i <= currentStageIndex; i++) {
+                const stageId = stageOrder[i];
+                const el = document.getElementById(`space-${stageId}`);
+                if (el) el.classList.remove('disabled');
+            }
+
+            if (gameState.stage !== 'complete') {
+                const nextStage = getNextStage(gameState.stage);
+                const nextEl = document.getElementById(`space-${nextStage}`);
+                if(nextEl) {
+                    nextEl.classList.remove('disabled');
+                    nextEl.classList.add('stage-active'); // DESTAQUE: PRÓXIMO PASSO
+                }
+            } else if (gameState.stage === 'complete') {
+                const finalEl = document.getElementById(`space-3-4`);
+                if(finalEl) finalEl.classList.add('stage-active'); // Destaque na última etapa concluída
+            }
+            
+            // Botões de ranking, calculadora e social sempre ativos
+            document.getElementById('space-ranking').classList.remove('disabled');
+            document.getElementById('space-calculator').classList.remove('disabled');
+            document.getElementById('space-social').classList.remove('disabled');
+            
+            if (gameState.stage === 'intro') {
+                renderCenterContent('intro');
+            }
+        };
+
+        window.handleSpaceClick = (id) => {
+            if (!document.getElementById(`space-${id}`).classList.contains('disabled')) {
+                renderCenterContent(id);
+            }
+        };
+
+        window.selectMarket = (marketKey) => {
+            const mkt = MARKET_SCENARIOS[marketKey];
+            saveGameState({ 
+                market: marketKey,
+                income: mkt.startIncome,
+                savings: mkt.startSavings,
+                currentDebts: mkt.startDebts,
+                stage: '1-1',
+                startTime: Date.now() 
+            });
+            renderCenterContent('1-1');
+            showModal("Mercado Selecionado", `Bem-vindo ao mercado **${mkt.name}**! Seus dados iniciais foram carregados. Prossiga para a auditoria financeira.`, "OK");
+        };
+
+        window.advanceStage = (updates = {}) => {
+            const next = getNextStage(gameState.stage);
+            saveGameState({ stage: next, ...updates });
+            renderCenterContent(next);
+        };
+        
+        window.resetGame = () => {
+            location.reload();
+        };
+        
+        window.submitScore = () => {
+            const name = document.getElementById('player-name').value;
+            if (name.trim()) {
+                saveRanking(name, gameState.finalScore, gameState.endTime - gameState.startTime);
+                showModal("Sucesso!", "Sua pontuação foi enviada para o Ranking!", "OK");
+                document.getElementById('player-name').disabled = true;
+            } else {
+                showModal("Atenção", "Por favor, insira um nome para o Ranking.", "OK");
+            }
+        };
+
+        // --- FUNÇÕES DE SALVAMENTO DE DADOS E AVANÇO ---
+
+        window.saveIncomeData = () => {
+            const newIncome = parseFloat(document.getElementById('input-income').value);
+            const newSavings = parseFloat(document.getElementById('input-savings').value);
+            const newCreditScore = parseFloat(document.getElementById('input-credit-score').value);
+            
+            if (isNaN(newIncome) || isNaN(newSavings) || isNaN(newCreditScore) || newIncome <= 0 || newCreditScore < 300) {
+                showModal("Atenção", "Por favor, preencha todos os campos com valores válidos (Renda > 0).", "OK");
+                return;
+            }
+
+            saveGameState({ 
+                income: newIncome, 
+                savings: newSavings,
+                creditScore: newCreditScore
+            });
+
+            advanceStage();
+        };
+
+        window.saveDebtData = () => {
+            let newDebts = {};
+            let totalMonthlyDebt = 0;
+            document.querySelectorAll('.debt-input').forEach(input => {
+                const value = parseFloat(input.value) || 0;
+                newDebts[input.name] = value;
+                totalMonthlyDebt += value;
+            });
+
+            saveGameState({ currentDebts: newDebts });
+            
+            // Calcula o orçamento máximo após atualizar as dívidas
+            calculateMaxBudget();
+
+            // Mensagem de Feedback
+            showModal("Orçamento Calculado", 
+                `Suas dívidas mensais somam **${formatCurrency(totalMonthlyDebt)}**. Com base na sua Renda e Dívidas, seu **Orçamento Máximo** foi definido.`, 
+                "OK"
+            );
+            
+            advanceStage();
+        };
+
+        window.saveDownPaymentData = () => {
+            const dpPct = parseFloat(document.getElementById('input-down-payment-pct').value) / 100;
+            const newPct = Math.max(0.03, Math.min(1.0, dpPct)); // Mínimo 3%
+            
+            if (isNaN(dpPct)) {
+                showModal("Atenção", "Insira um valor de percentual de entrada válido.", "OK");
+                return;
+            }
+            
+            saveGameState({ downPaymentPct: newPct });
+            
+            // Recalcula o orçamento se o DP for ajustado
+            calculateMaxBudget();
+
+            showModal("Entrada Definida", 
+                `Você definiu uma entrada de **${formatPercent(newPct)}**. Isso define o valor da sua hipoteca e o eventual pagamento de PMI.`, 
+                "OK"
+            );
+            
+            advanceStage();
+        };
+
+        window.simulatePreApproval = () => {
+            const maxBudget = gameState.maxOfferPrice;
+            const status = maxBudget > 0 ? "APROVADO!" : "REPROVADO.";
+            
+            if (maxBudget > 0) {
+                 showModal("Pré-Aprovação Recebida", 
+                    `Parabéns! Você foi pré-aprovado para um empréstimo. Seu limite máximo de compra é de **${formatCurrency(maxBudget)}**. Agora, a diversão começa: a busca pelo imóvel!`, 
+                    "OK"
+                );
+            } else {
+                 showModal("Pré-Aprovação Negada", 
+                    `Sua relação Dívida/Renda (${(gameState.income * MAX_DTI).toFixed(0)}/${Object.values(gameState.currentDebts).reduce((sum, debt) => sum + debt, 0)}) está muito alta. Tente aumentar sua Renda na Etapa 1-1.`, 
+                    "OK"
+                );
+            }
+            
+            // Gerar as listagens de casas assim que a pré-aprovação ocorrer
+            generateListings();
+            
+            advanceStage();
+        };
+        
+        window.selectProperty = (listingId) => {
+            const property = currentListings.find(l => l.id === listingId);
+            
+            if (!property) return;
+            
+            // Verifica se está dentro do orçamento máximo
+            if (property.price > gameState.maxOfferPrice) {
+                showModal("Atenção - Orçamento Excedido",
+                    `O preço de lista desta propriedade (${formatCurrency(property.price)}) excede seu orçamento máximo pré-aprovado de **${formatCurrency(gameState.maxOfferPrice)}**. Você pode tentar a sorte, mas o banco pode negar.`,
+                    "OK"
+                );
+                // Permite o avanço, mas com aviso
+            } else {
+                 showModal("Imóvel Selecionado",
+                    `Você selecionou o imóvel **${property.id}** com preço de lista de **${formatCurrency(property.price)}**. Próximo passo: Fazer uma Oferta!`,
+                    "OK"
+                );
+            }
+            
+            saveGameState({ property: property, offer: {} });
+            advanceStage({ stage: '2-4' }); // Avança diretamente para Fazer Oferta
+        };
+
+        window.submitOffer = () => {
+            const offerPrice = parseFloat(document.getElementById('input-offer-price').value);
+            const propertyPrice = gameState.property.price;
+            
+            if (isNaN(offerPrice) || offerPrice <= 0) {
+                 showModal("Atenção", "Insira um valor de oferta válido.", "OK");
+                 return;
+            }
+            
+            let statusMessage;
+            if (offerPrice < propertyPrice * 0.9) {
+                 statusMessage = "A oferta foi muito baixa e foi **rejeitada** imediatamente. Tente oferecer um valor mais próximo do preço de lista.";
+                 showModal("Oferta Rejeitada", statusMessage, "OK");
+                 return; // Fica na mesma etapa (2-4)
+            }
+            
+            // Simulação de negociação: oferta aceita se for 95% do preço ou mais
+            const accepted = offerPrice >= propertyPrice * 0.95 || offerPrice >= gameState.maxOfferPrice; 
+            
+            if (accepted) {
+                statusMessage = `Parabéns! Sua oferta de **${formatCurrency(offerPrice)}** foi aceita! Estamos sob contrato. Próximo passo: Inspeção.`;
+                saveGameState({ offer: { price: offerPrice }, appraisalValue: gameState.property.appraisal }); // Salva a avaliação original da casa
+                advanceStage();
+            } else {
+                statusMessage = `Sua oferta de **${formatCurrency(offerPrice)}** foi rejeitada. Tente fazer uma oferta mais alta ou busque outro imóvel.`;
+                showModal("Oferta Rejeitada", statusMessage, "OK");
+                 // Fica na mesma etapa (2-4)
+            }
+        };
+
+        window.negotiateInspection = () => {
+             const issues = gameState.property.issues;
+             const offerPrice = gameState.offer.price;
+             const negotiationInput = parseFloat(document.getElementById('input-inspection-negotiation').value) || 0;
+             
+             if (issues === 0) {
+                 showModal("Inspeção Limpa", "A inspeção não encontrou problemas significativos. Avance para a Avaliação.", "OK");
+                 advanceStage();
+                 return;
+             }
+
+             if (negotiationInput > 0) {
+                 // Simulação: Aceita metade do desconto pedido, no máximo 50% do valor dos problemas.
+                 const maxDiscount = (issues * 10000); // 10k por problema
+                 const acceptedDiscount = Math.min(negotiationInput, maxDiscount * 0.5);
+                 
+                 const newOfferPrice = offerPrice - acceptedDiscount;
+
+                 showModal("Negociação Concluída", 
+                    `A inspeção encontrou ${issues} problemas. Você negociou um desconto de **${formatCurrency(acceptedDiscount)}**. O novo preço de contrato é **${formatCurrency(newOfferPrice)}**.`, 
+                    "OK"
+                );
+                
+                 saveGameState({ offer: { price: newOfferPrice } });
+                 advanceStage();
+
+             } else {
+                 showModal("Atenção", `A inspeção encontrou **${issues}** problemas. Você deve negociar um desconto ou aceitar o imóvel como está.`, "OK");
+                 // Permanece na tela 3-1 até que algo seja inserido
+             }
+        };
+
+        window.simulateAppraisal = () => {
+            const appraisalValue = gameState.property.appraisal;
+            const offerPrice = gameState.offer.price;
+            
+            let message;
+            if (appraisalValue >= offerPrice) {
+                message = `Excelente! O imóvel foi avaliado em **${formatCurrency(appraisalValue)}**, o que é suficiente para cobrir seu preço de contrato. Prossiga para o Fechamento.`;
+            } else {
+                 // GAP entre avaliação e preço
+                const gap = offerPrice - appraisalValue;
+                message = `Atenção! O imóvel foi avaliado em apenas **${formatCurrency(appraisalValue)}**, o que é **${formatCurrency(gap)}** abaixo do seu preço de contrato. Você terá que cobrir essa diferença em dinheiro (Cash) ou negociar o preço novamente.`;
+            }
+            
+            showModal("Avaliação Bancária", message, "OK");
+
+            // Salva a avaliação oficial
+            saveGameState({ appraisalValue: appraisalValue });
+            advanceStage();
+        };
+
+        window.completeClosing = () => {
+            const offerPrice = gameState.offer.price;
+            const downPayment = offerPrice * gameState.downPaymentPct;
+            const loanAmount = offerPrice * (1 - gameState.downPaymentPct);
+
+            let message = `Parabéns! O processo de fechamento foi concluído.
+            <ul class="list-disc list-inside text-left mt-3 space-y-1">
+                <li>Preço Final de Contrato: **${formatCurrency(offerPrice)}**</li>
+                <li>Entrada (${formatPercent(gameState.downPaymentPct)}): **${formatCurrency(downPayment)}**</li>
+                <li>Empréstimo (Hipoteca): **${formatCurrency(loanAmount)}**</li>
+            </ul>
+            <p class="mt-3">Você venceu a fase de Fechamento!</p>`;
+            
+            showModal("Fechamento Concluído", message, "OK");
+            advanceStage();
+        };
+        
+        window.getFinalScore = () => {
+             // Atualiza para o estágio final e calcula a pontuação
+            saveGameState({ endTime: Date.now() });
+            calculateScore();
+            renderCenterContent('complete');
+        };
+
+
+        // --- Funções Modal (Mantidas) ---
+        window.showModal = (title, body, buttonText = "Fechar") => {
+            document.getElementById('modal-title').innerHTML = `<i class="ph ph-info text-2xl mr-2"></i> ${title}`;
+            document.getElementById('modal-body').innerHTML = `<p class="text-base text-gray-700">${body}</p>`;
+            document.getElementById('modal-footer').querySelector('.btn-primary').innerText = buttonText;
+            document.getElementById('modal').classList.remove('hidden');
+            document.getElementById('modal').classList.add('flex');
+        };
+
+        window.hideModal = () => {
+            document.getElementById('modal').classList.add('hidden');
+            document.getElementById('modal').classList.remove('flex');
+        };
+
+        // --- RENDER FUNCTIONS (Lógica de Tela) ---
+        const renderCenterContent = async (id) => {
+            const content = document.getElementById('center-content');
+            let html = '';
+            
+            // Renderiza a tela de introdução se o jogo não começou
+            if (id === 'intro' && !gameState.market) {
+                 html = `
+                    <div class="text-3xl font-bold text-primary mb-4">Bem-vindo ao Cristiano Jarbas Tycoon</div>
+                    <p class="text-gray-400 mb-6">Este é o seu jogo de simulação de compra de imóvel. **Seu objetivo é comprar um imóvel o mais rápido e de forma mais eficiente possível!**</p>
+                    <p class="text-gray-400">Comece selecionando o Mercado de atuação no botão **INICIAR** (canto inferior direito).</p>
+                    <button onclick="renderCenterContent('start')" class="btn-primary mt-6">
+                        <i class="ph ph-flag-checkered text-xl"></i> INICIAR JOGO
+                    </button>
+                `;
+                content.innerHTML = html;
+                return;
+            }
+
+
+            switch(id) {
+                case 'start': // SELEÇÃO DE MERCADO
+                    html = `
+                        <div class="mb-6 relative">
+                            <img src="https://via.placeholder.com/128x128?text=LOGO" alt="Logo da Imobiliária" class="w-32 h-32 object-contain mx-auto smoke-effect">
+                        </div>
+                        <h2 class="text-3xl font-black text-secondary mb-4">Selecione o Mercado</h2>
+                        <div class="grid gap-4 w-full">
+                            ${Object.entries(MARKET_SCENARIOS).map(([k, v]) => `
+                                <button onclick="selectMarket('${k}')" class="bg-gray-800 p-4 rounded-xl hover:bg-gray-700 border border-gray-600 text-left">
+                                    <div class="font-bold text-accent text-lg">${v.name}</div>
+                                    <div class="text-sm text-gray-400">Faixa de Preço: ${formatCurrency(v.priceRange[0])} - ${formatCurrency(v.priceRange[1])}</div>
+                                    <div class="text-sm text-gray-400">Juros Base: ${(v.interestRate * 100).toFixed(2)}%</div>
+                                </button>
+                            `).join('')}
+                        </div>
+                    `;
+                    break;
+
+                case '1-1': // Renda
+                    html = `
+                        <h3 class="text-2xl font-bold text-primary mb-4"><i class="ph ph-money text-2xl mr-2"></i> Renda e Perfil</h3>
+                        <p class="text-gray-400 mb-6">Preencha seus dados financeiros atuais para calcular seu poder de compra inicial.</p>
+                        <div class="w-full max-w-sm space-y-3 text-left">
+                            <label class="label-text">Renda Mensal Bruta (R$)</label>
+                            <input type="number" id="input-income" class="input-field" value="${gameState.income}" placeholder="Ex: 10000">
+
+                            <label class="label-text">Economias/Entrada (R$)</label>
+                            <input type="number" id="input-savings" class="input-field" value="${gameState.savings}" placeholder="Ex: 50000">
+                            
+                            <label class="label-text">Credit Score (300-850)</label>
+                            <input type="number" id="input-credit-score" class="input-field" value="${gameState.creditScore}" min="300" max="850">
+                        </div>
+                        <button onclick="saveIncomeData()" class="btn-primary mt-6">
+                            <i class="ph ph-check-circle text-xl mr-2"></i> Confirmar e Próxima Etapa
+                        </button>
+                    `;
+                    break;
+
+                case '1-2': // Dívidas
+                    html = `
+                        <h3 class="text-2xl font-bold text-primary mb-4"><i class="ph ph-piggy-bank text-2xl mr-2"></i> Dívidas Mensais</h3>
+                        <p class="text-gray-400 mb-6">Informe o pagamento mensal mínimo de suas dívidas atuais (Cartão, Empréstimo, Carro, etc.)</p>
+                        <div class="w-full max-w-sm space-y-3 text-left">
+                             ${Object.entries(gameState.currentDebts).map(([name, value]) => `
+                                <label class="label-text">${name} (R$ / Mês)</label>
+                                <input type="number" name="${name}" class="input-field debt-input" value="${value}" placeholder="Pagamento Mensal">
+                            `).join('')}
+                        </div>
+                        <button onclick="saveDebtData()" class="btn-primary mt-6">
+                            <i class="ph ph-calculator text-xl mr-2"></i> Calcular Orçamento
+                        </button>
+                    `;
+                    break;
+
+                case '1-3': // Entrada
+                    html = `
+                        <h3 class="text-2xl font-bold text-primary mb-4"><i class="ph ph-percent text-2xl mr-2"></i> Entrada (Down Payment)</h3>
+                        <p class="text-gray-400 mb-6">Quanto da sua economia você está disposto a usar como entrada para o imóvel?</p>
+                        <div class="w-full max-w-sm space-y-3 text-left">
+                            <p class="text-sm text-gray-500">Seu Orçamento Máximo é: **${formatCurrency(gameState.maxOfferPrice)}**</p>
+                            <p class="text-sm text-gray-500">Suas Economias Atuais: **${formatCurrency(gameState.savings)}**</p>
+
+                            <label class="label-text">Entrada (%)</label>
+                            <input type="number" id="input-down-payment-pct" class="input-field" value="${(gameState.downPaymentPct * 100).toFixed(0)}" min="3" max="100" placeholder="Ex: 20">
+                            <p class="text-xs text-gray-500 mt-2">Menos de 20% exige Pagamento de PMI (Seguro da Hipoteca).</p>
+                        </div>
+                        <button onclick="saveDownPaymentData()" class="btn-primary mt-6">
+                            <i class="ph ph-file-text text-xl mr-2"></i> Próxima Etapa
+                        </button>
+                    `;
+                    break;
+
+                case '1-4': // Pré-Aprovação
+                    const dti = (Object.values(gameState.currentDebts).reduce((sum, debt) => sum + debt, 0) / gameState.income).toFixed(2);
+                    html = `
+                        <h3 class="text-2xl font-bold text-primary mb-4"><i class="ph ph-file-text text-2xl mr-2"></i> Revisão e Pré-Aprovação</h3>
+                        <div class="text-left w-full max-w-md bg-gray-700 p-4 rounded-lg shadow-inner">
+                            <h4 class="font-bold text-accent mb-2">Seu Perfil de Risco:</h4>
+                            <p>Renda Mensal: **${formatCurrency(gameState.income)}**</p>
+                            <p>Dívidas Mensais: **${formatCurrency(Object.values(gameState.currentDebts).reduce((sum, debt) => sum + debt, 0))}**</p>
+                            <p>Relação Dívida/Renda (DTI): **${dti}** (Máx: ${MAX_DTI})</p>
+                            <p>Credit Score: **${gameState.creditScore}** (${CREDIT_RATES.find(r => gameState.creditScore >= r.min)?.name || 'Muito Ruim'})</p>
+                            <p>Taxa Efetiva Estimada: **${formatPercentPrecision(gameState.effectiveRate)}**</p>
+                        </div>
+                        <p class="text-lg font-bold mt-4 mb-6 ${gameState.maxOfferPrice > 0 ? 'text-green-400' : 'text-red-400'}">
+                            Orçamento Máximo: **${formatCurrency(gameState.maxOfferPrice)}**
+                        </p>
+                        <button onclick="simulatePreApproval()" class="btn-primary mt-6">
+                            <i class="ph ph-magnifying-glass text-xl mr-2"></i> Iniciar Busca
+                        </button>
+                    `;
+                    break;
+                
+                case '2-1': // Buscar
+                    html = `
+                        <h3 class="text-2xl font-bold text-secondary mb-4"><i class="ph ph-magnifying-glass text-2xl mr-2"></i> Buscar Imóveis</h3>
+                        <p class="text-gray-400 mb-6">Seu orçamento máximo é **${formatCurrency(gameState.maxOfferPrice)}**. Selecione um imóvel para avançar.</p>
+                        <div class="w-full space-y-3 text-left">
+                            ${currentListings.map(l => `
+                                <div class="bg-gray-800 p-4 rounded-xl border-l-4 ${l.price > gameState.maxOfferPrice ? 'border-red-500' : 'border-green-500'} flex justify-between items-center">
+                                    <div>
+                                        <div class="font-bold text-white text-lg">${formatCurrency(l.price)}</div>
+                                        <div class="text-sm text-gray-400">${l.beds}q / ${l.baths}b | ${l.size}m²</div>
+                                        ${l.price > gameState.maxOfferPrice ? '<div class="text-red-400 text-xs font-bold">FORA DO ORÇAMENTO</div>' : ''}
+                                    </div>
+                                    <button onclick="selectProperty('${l.id}')" class="btn-secondary px-4 py-2 w-auto">Selecionar</button>
+                                </div>
+                            `).join('')}
+                        </div>
+                    `;
+                    break;
+
+                case '2-2': // Comparar (Apenas visualização das listagens geradas)
+                    html = `
+                        <h3 class="text-2xl font-bold text-secondary mb-4"><i class="ph ph-chart-bar text-2xl mr-2"></i> Comparar Listagens</h3>
+                        <p class="text-gray-400 mb-6">Analise as opções geradas no mercado antes de tomar a decisão de compra.</p>
+                        <div class="w-full space-y-3 text-left">
+                            ${currentListings.map(l => `
+                                <div class="bg-gray-800 p-4 rounded-xl border-l-4 ${l.price > gameState.maxOfferPrice ? 'border-red-500' : 'border-green-500'} flex justify-between items-center">
+                                    <div>
+                                        <div class="font-bold text-white text-lg">${formatCurrency(l.price)}</div>
+                                        <div class="text-sm text-gray-400">${l.beds}q / ${l.baths}b | ${l.size}m²</div>
+                                        ${l.price > gameState.maxOfferPrice ? '<div class="text-red-400 text-xs font-bold">Fora do Orçamento</div>' : ''}
+                                        <div class="text-sm text-accent">Avaliação Estimada: ${formatCurrency(l.appraisal)}</div>
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                         <button onclick="advanceStage({ stage: '2-3' })" class="btn-secondary mt-6">
+                            <i class="ph ph-house-line text-xl mr-2"></i> Voltar para Selecionar
+                        </button>
+                    `;
+                    break;
+
+                case '2-3': // Selecionar (Redireciona para a lista)
+                    html = `
+                         <h3 class="text-2xl font-bold text-secondary mb-4"><i class="ph ph-house-line text-2xl mr-2"></i> Selecionar Imóvel</h3>
+                         <p class="text-gray-400 mb-6">Selecione o imóvel que você deseja para continuar o processo.</p>
+                         <button onclick="renderCenterContent('2-1')" class="btn-primary w-2/3">
+                            <i class="ph ph-magnifying-glass text-xl mr-2"></i> Ver Listagens
+                        </button>
+                    `;
+                    break;
+
+                case '2-4': // Oferta
+                    if (!gameState.property) {
+                        html = `<p class="text-red-400">Nenhum imóvel selecionado. Volte para a busca.</p><button onclick="advanceStage({ stage: '2-1' })" class="btn-primary mt-6">Buscar</button>`;
+                        break;
+                    }
+                    html = `
+                        <h3 class="text-2xl font-bold text-secondary mb-4"><i class="ph ph-pencil-line text-2xl mr-2"></i> Fazer Oferta</h3>
+                        <p class="text-gray-400 mb-6">Imóvel Selecionado (${gameState.property.id}): Preço de Lista **${formatCurrency(gameState.property.price)}**</p>
+                        <div class="w-full max-w-sm space-y-3 text-left">
+                             <label class="label-text">Sua Oferta (R$)</label>
+                            <input type="number" id="input-offer-price" class="input-field" value="${gameState.property.price}" placeholder="Valor da Oferta">
+                        </div>
+                        <button onclick="submitOffer()" class="btn-primary mt-6">
+                            <i class="ph ph-file-pdf text-xl mr-2"></i> Enviar Proposta
+                        </button>
+                    `;
+                    break;
+
+                case '3-1': // Inspeção
+                    const prop = gameState.property;
+                    const issues = prop ? prop.issues : 0;
+                    const message = issues > 0 
+                        ? `<p class="text-red-400 font-bold">Atenção: A inspeção encontrou **${issues}** problemas (Ex: Telhado velho, encanamento). Estime o custo do reparo (R$10.000 por problema) e negocie um desconto.</p>`
+                        : `<p class="text-green-400 font-bold">Ótimo! A inspeção não encontrou problemas significativos.</p>`;
+                        
+                    html = `
+                        <h3 class="text-2xl font-bold text-zone-3 mb-4"><i class="ph ph-toolbox text-2xl mr-2"></i> Inspeção do Imóvel</h3>
+                        ${message}
+                        <div class="w-full max-w-sm space-y-3 text-left mt-4">
+                            <p class="text-sm text-gray-500">Preço Contratado: **${formatCurrency(gameState.offer.price)}**</p>
+                            <label class="label-text">Desconto Negociado (R$)</label>
+                            <input type="number" id="input-inspection-negotiation" class="input-field" value="0" placeholder="0 (se for aceitar como está)">
+                        </div>
+                        <button onclick="negotiateInspection()" class="btn-primary mt-6">
+                            <i class="ph ph-bank text-xl mr-2"></i> Próxima Etapa: Avaliação
+                        </button>
+                    `;
+                    break;
+
+                case '3-2': // Avaliação
+                    const monthlyPaymentDetails = calculateTotalMonthlyPayment(gameState.offer.price, gameState.downPaymentPct, gameState.appraisalValue);
+                    
+                    html = `
+                        <h3 class="text-2xl font-bold text-zone-3 mb-4"><i class="ph ph-bank text-2xl mr-2"></i> Avaliação (Appraisal)</h3>
+                        <p class="text-gray-400 mb-4">O banco avalia o valor de mercado para garantir o empréstimo.</p>
+                        <div class="text-left w-full max-w-md bg-gray-700 p-4 rounded-lg shadow-inner">
+                            <p class="font-bold text-accent">Valor Avaliado: **${formatCurrency(gameState.appraisalValue)}**</p>
+                            <p class="font-bold text-white">Preço de Contrato: **${formatCurrency(gameState.offer.price)}**</p>
+                            ${gameState.appraisalValue < gameState.offer.price ? `<p class="text-red-400 font-bold mt-2">FALHA DE AVALIAÇÃO! Diferença de **${formatCurrency(gameState.offer.price - gameState.appraisalValue)}**.</p>` : ''}
+                        </div>
+                        <h4 class="font-bold text-white mt-4">Simulação do Pagamento Mensal:</h4>
+                        <div class="text-left w-full max-w-md bg-gray-800 p-4 rounded-lg mt-2">
+                             <p>P&I (Principal + Juros): ${formatCurrencyFloat(monthlyPaymentDetails.PI)}</p>
+                             <p>Impostos (Taxes): ${formatCurrencyFloat(monthlyPaymentDetails.Taxes)}</p>
+                             <p>Seguro (Insurance): ${formatCurrencyFloat(monthlyPaymentDetails.Insurance)}</p>
+                             ${monthlyPaymentDetails.PMI > 0 ? `<p class="text-red-400">PMI (Seguro Hipoteca): ${formatCurrencyFloat(monthlyPaymentDetails.PMI)}</p>` : ''}
+                             <p class="font-bold text-lg mt-2 text-accent">Total Mensal: ${formatCurrencyFloat(monthlyPaymentDetails.Total)}</p>
+                        </div>
+                        <button onclick="simulateAppraisal()" class="btn-primary mt-6">
+                            <i class="ph ph-file-pdf text-xl mr-2"></i> Próxima Etapa
+                        </button>
+                    `;
+                    break;
+                
+                case '3-3': // Fechamento
+                    html = `
+                        <h3 class="text-2xl font-bold text-zone-3 mb-4"><i class="ph ph-file-pdf text-2xl mr-2"></i> Fechamento do Contrato</h3>
+                        <p class="text-gray-400 mb-6">Todos os documentos foram assinados, o dinheiro foi transferido. O imóvel é quase seu!</p>
+                        <div class="text-left w-full max-w-md bg-gray-700 p-4 rounded-lg shadow-inner">
+                            <p>Preço Final: **${formatCurrency(gameState.offer.price)}**</p>
+                            <p>Próxima Ação: Receber as Chaves!</p>
+                        </div>
+                        <button onclick="completeClosing()" class="btn-primary mt-6">
+                            <i class="ph ph-key text-xl mr-2"></i> Concluir Fechamento
+                        </button>
+                    `;
+                    break;
+
+                case '3-4': // Chaves!
+                    html = `
+                        <h3 class="text-2xl font-bold text-zone-3 mb-4"><i class="ph ph-key text-3xl mr-2 text-accent"></i> Parabéns! Você comprou o imóvel!</h3>
+                        <p class="text-gray-400 mb-6">O processo de compra foi concluído. Clique abaixo para ver sua pontuação final.</p>
+                        <button onclick="getFinalScore()" class="btn-primary mt-6">
+                            <i class="ph ph-trophy text-xl mr-2"></i> Ver Pontuação Final
+                        </button>
+                    `;
+                    break;
+
+                case 'complete': // FIM DE JOGO
+                    html = `
+                        <h3 class="text-3xl font-black text-accent mb-4">🥳 JOGO COMPLETO!</h3>
+                        <p class="text-gray-400 mb-2">Imóvel Comprado: **${formatCurrency(gameState.offer.price)}**</p>
+                        <p class="text-gray-400 mb-2">Tempo Total: **${formatTime(gameState.endTime - gameState.startTime)}**</p>
+                        <p class="text-5xl font-extrabold text-white my-4">Score Final: ${formatCurrency(gameState.finalScore)}</p>
+
+                        <div class="w-full max-w-sm space-y-3 text-left">
+                             <label class="label-text">Seu Nome para o Ranking</label>
+                            <input type="text" id="player-name" class="input-field" value="${gameState.playerName}" placeholder="Nome do Jogador">
+                        </div>
+                        <button onclick="submitScore()" class="btn-primary mt-4">
+                            <i class="ph ph-upload text-xl mr-2"></i> Enviar Pontuação
+                        </button>
+                         <button onclick="resetGame()" class="btn-secondary mt-4">
+                            <i class="ph ph-flag-checkered text-xl mr-2"></i> Iniciar Novo Jogo
+                        </button>
+                    `;
+                    break;
+                    
+                case 'ranking':
+                    html = `
+                         <h3 class="text-xl font-bold mb-4"><i class="ph ph-trophy text-2xl mr-2"></i> Melhores Corretores</h3>
+                         <div id="ranking-list-container" class="w-full text-left">Carregando ranking...</div>
+                     `;
+                     content.innerHTML = html;
+                     const rankings = await loadRanking();
+                     const listContainer = document.getElementById('ranking-list-container');
+                     
+                     if (rankings.length === 0) {
+                         listContainer.innerHTML = '<p class="text-gray-400">Nenhum score encontrado ainda.</p>';
+                     } else {
+                         listContainer.innerHTML = `
+                             <div class="ranking-list">
+                                 ${rankings.map((r, index) => `
+                                     <div class="ranking-item ${index === 0 ? 'bg-accent text-gray-900 font-extrabold' : ''}">
+                                         <span class="w-1/6">${index + 1}°</span>
+                                         <span class="w-3/6">${r.name}</span>
+                                         <span class="w-2/6 text-right">${formatCurrency(r.score)}</span>
+                                     </div>
+                                 `).join('')}
+                             </div>
+                         `;
+                     }
+                     return;
+
+                case 'calculator': 
+                     const currentRate = getEffectiveRate(gameState.creditScore);
+                     html = `
+                         <h3 class="text-xl font-bold mb-4"><i class="ph ph-calculator text-2xl mr-2"></i> Calculadora de Prestação</h3>
+                         <p class="text-sm text-gray-400 mb-4">Simule o pagamento mensal. Sua Taxa Estimada: <span class="text-accent font-bold">${formatPercentPrecision(currentRate)}</span></p>
+
+                         <div class="w-full space-y-3 max-w-sm">
+                             <label class="label-text">Valor do Empréstimo (R$)</label>
+                             <input type="number" id="calc-loan" class="input-field" value="300000" oninput="calculateMortgage()">
+
+                             <label class="label-text">Taxa Anual (%)</label>
+                             <input type="number" id="calc-rate" class="input-field" step="0.001" value="${(currentRate * 100).toFixed(3)}" oninput="calculateMortgage()">
+                             
+                             <label class="label-text">Prazo (Anos)</label>
+                             <input type="number" id="calc-term" class="input-field" value="30" oninput="calculateMortgage()">
+                         </div>
+
+                         <div id="calc-result" class="mt-4 p-4 bg-gray-700 rounded-lg w-full max-w-sm font-bold text-lg hidden">
+                             Prestação Mensal P&I: <span class="text-accent" id="monthly-payment-display">R$ 0</span>
+                         </div>
+                     `;
+                      // Adiciona a função de cálculo de hipoteca
+                      window.calculateMortgage = () => {
+                          const loan = parseFloat(document.getElementById('calc-loan').value);
+                          const annualRatePct = parseFloat(document.getElementById('calc-rate').value) / 100;
+                          const termYears = parseFloat(document.getElementById('calc-term').value);
+
+                          if (isNaN(loan) || isNaN(annualRatePct) || isNaN(termYears) || loan <= 0 || termYears <= 0) {
+                              document.getElementById('calc-result').classList.add('hidden');
+                              return;
+                          }
+
+                          const monthlyRate = annualRatePct / 12;
+                          const totalPayments = termYears * 12;
+
+                          let monthlyPayment;
+                          if (monthlyRate === 0) {
+                              monthlyPayment = loan / totalPayments;
+                          } else {
+                              monthlyPayment = loan * (monthlyRate * Math.pow(1 + monthlyRate, totalPayments)) / (Math.pow(1 + monthlyRate, totalPayments) - 1);
+                          }
+                          
+                          document.getElementById('monthly-payment-display').innerText = formatCurrency(monthlyPayment);
+                          document.getElementById('calc-result').classList.remove('hidden');
+                      };
+                     // Executa o cálculo inicial
+                     setTimeout(() => calculateMortgage(), 100);
+                     break;
+                    
+                case 'social':
+                    const socialLinks = [
+                        { name: "Website Oficial", icon: "ph-globe-simple", url: "https://www.cristianojarbas.com/" },
+                        { name: "Instagram", icon: "ph-instagram-logo", url: "https://www.instagram.com/cristianojarbas" },
+                        { name: "YouTube", icon: "ph-youtube-logo", url: "https://www.youtube.com/@cristianojarbas" },
+                        { name: "LinkedIn", icon: "ph-linkedin-logo", url: "https://www.linkedin.com/in/cristianojarbas" }
+                    ];
+
+                    html = `
+                        <h3 class="text-xl font-bold mb-4"><i class="ph ph-share-network text-2xl mr-2"></i> Redes Sociais</h3>
+                        <p class="text-gray-400 mb-6">Conheça mais sobre os criadores e o conceito por trás do jogo.</p>
+                        <div class="grid grid-cols-2 gap-4 w-full max-w-md">
+                             ${socialLinks.map(link => `
+                                <a href="${link.url}" target="_blank" class="bg-gray-800 p-4 rounded-xl hover:bg-gray-700 border border-gray-600 text-center flex flex-col items-center">
+                                    <i class="ph ${link.icon} text-3xl mb-2 text-accent"></i>
+                                    <span class="font-bold text-sm">${link.name}</span>
+                                </a>
+                            `).join('')}
+                        </div>
+                    `;
+                    break;
+
+                default:
+                    // Renderiza a tela de introdução se o ID não for reconhecido ou for uma tela desabilitada
+                    html = `
+                         <h2 class="text-3xl font-black text-primary mb-4">Cristiano Jarbas Tycoon</h2>
+                         <p class="text-gray-400 mb-6">Siga o passo a passo no tabuleiro. A próxima etapa é indicada pelo destaque **Azul**.</p>
+                         <i class="ph ph-arrow-down-left text-8xl text-secondary animate-bounce"></i>
+                    `;
+            }
+
+            content.innerHTML = html;
+        };
+
+        // Inicialização: Renderiza a tela de introdução
+        document.addEventListener('DOMContentLoaded', () => {
+             updateUI();
+             renderCenterContent('intro');
+        });
+    </script>
 </body>
 </html>
