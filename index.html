@@ -241,25 +241,35 @@
 
     <script>
         // 2. INICIALIZAÇÃO FIREBASE (SUBSTITUA PELAS SUAS CHAVES AQUI!)
+        // ===================================================================
         const firebaseConfig = {
-            apiKey: "[SUAS CHAVES DO FIREBASE AQUI]", 
-            authDomain: "[SUAS CHAVES DO FIREBASE AQUI]",
-            projectId: "[SUAS CHAVES DO FIREBASE AQUI]",
-            storageBucket: "[SUAS CHAVES DO FIREBASE AQUI]",
-            messagingSenderId: "[SUAS CHAVES DO FIREBASE AQUI]",
-            appId: "[SUAS CHAVES DO FIREBASE AQUI]"
+            apiKey: "[SUA API KEY AQUI]", 
+            authDomain: "[SEU AUTH DOMAIN AQUI]",
+            projectId: "[SEU PROJECT ID AQUI]",
+            storageBucket: "[SEU STORAGE BUCKET AQUI]",
+            messagingSenderId: "[SEU MESSAGING SENDER ID AQUI]",
+            appId: "[SEU APP ID AQUI]"
         };
+        // ===================================================================
 
         let db;
         try {
-            if (typeof firebase !== 'undefined' && !firebase.apps.length) {
-                firebase.initializeApp(firebaseConfig);
-            }
-            if (typeof firebase !== 'undefined') {
-                db = firebase.firestore();
+            if (typeof firebase !== 'undefined' && firebaseConfig.projectId.includes("SEU PROJECT ID") === false) {
+                 if (!firebase.apps.length) {
+                    firebase.initializeApp(firebaseConfig);
+                 }
+                 db = firebase.firestore();
+            } else {
+                 console.warn("Firebase não inicializado. Configure firebaseConfig com suas credenciais.");
+                 // Adiciona um placeholder para o ranking não quebrar o jogo
+                 window.saveRanking = async (name, score, time) => {
+                     console.log("Ranking simulado. Nome:", name, "Score:", score);
+                 };
+                 window.loadRanking = async () => [];
             }
         } catch(e) {
             console.error("Erro ao inicializar Firebase: ", e);
+            window.showModal("Erro de Conexão", "Não foi possível conectar ao Ranking. Verifique suas chaves do Firebase.");
         }
         
         // --- CONSTANTES E CONFIGURAÇÃO ---
@@ -498,10 +508,11 @@
         };
 
         // --- FIREBASE (RANKING) ---
-        const saveRanking = async (name, score, time) => {
+        window.saveRanking = async (name, score, time) => {
             if (!db) return showModal("Erro de Ranking", "O serviço de ranking não está ativo.");
             try {
-                await db.collection("rankings_us").add({ // Alterado para 'rankings_us'
+                // Certifique-se que o Firestore está ativo e a coleção "rankings_us" existe
+                await db.collection("rankings_us").add({ 
                     name: name,
                     score: score,
                     timeMs: time,
@@ -510,14 +521,14 @@
                 });
             } catch (e) {
                 console.error("Erro ao salvar o ranking: ", e);
-                showModal("Erro de Ranking", "Não foi possível salvar sua pontuação no servidor.");
+                showModal("Erro de Ranking", "Não foi possível salvar sua pontuação no servidor. Verifique as regras de segurança do seu Firestore.");
             }
         };
 
-        const loadRanking = async () => {
+        window.loadRanking = async () => {
             if (!db) return [];
             try {
-                const snapshot = await db.collection("rankings_us") // Alterado para 'rankings_us'
+                const snapshot = await db.collection("rankings_us") 
                                              .orderBy("score", "desc")
                                              .limit(10)
                                              .get();
@@ -713,7 +724,8 @@
             // Gerar as listagens de casas assim que a pré-aprovação ocorrer
             generateListings();
             
-            advanceStage();
+            // Avança para a próxima etapa (2-1)
+            advanceStage(); 
         };
         
         window.selectProperty = (listingId) => {
@@ -957,24 +969,41 @@
                     `;
                     break;
 
-                case '1-4': // Pré-Aprovação
+                case '1-4': // Pré-Aprovação (CARTA)
                     const dti = (Object.values(gameState.currentDebts).reduce((sum, debt) => sum + debt, 0) / gameState.income).toFixed(2);
+                    const isApproved = gameState.maxOfferPrice > 0;
+                    const marketData = MARKET_SCENARIOS[gameState.market];
+                    const approvalStatus = isApproved ? 'APROVADO' : 'NEGADO';
+                    const approvalColor = isApproved ? 'text-green-500' : 'text-red-500';
+
                     html = `
-                        <h3 class="text-2xl font-bold text-primary mb-4"><i class="ph ph-file-text text-2xl mr-2"></i> Revisão e Pré-Aprovação</h3>
-                        <div class="text-left w-full max-w-md bg-gray-700 p-4 rounded-lg shadow-inner">
-                            <h4 class="font-bold text-accent mb-2">Seu Perfil de Risco (EUA):</h4>
-                            <p>Renda Mensal: **${formatCurrency(gameState.income)}**</p>
-                            <p>Dívidas Mensais: **${formatCurrency(Object.values(gameState.currentDebts).reduce((sum, debt) => sum + debt, 0))}**</p>
-                            <p>Relação Dívida/Renda (DTI): **${dti}** (Máx: ${MAX_DTI})</p>
-                            <p>Credit Score: **${gameState.creditScore}** (${CREDIT_RATES.find(r => gameState.creditScore >= r.min)?.name || 'Muito Ruim'})</p>
-                            <p>Taxa Efetiva Estimada: **${formatPercentPrecision(gameState.effectiveRate)}**</p>
-                        </div>
-                        <p class="text-lg font-bold mt-4 mb-6 ${gameState.maxOfferPrice > 0 ? 'text-green-400' : 'text-red-400'}">
-                            Orçamento Máximo: **${formatCurrency(gameState.maxOfferPrice)}**
-                        </p>
+                        <h3 class="text-2xl font-bold text-primary mb-4"><i class="ph ph-file-text text-2xl mr-2"></i> Carta de Pré-Aprovação</h3>
+                        <p class="text-gray-400 mb-6">Clique no botão abaixo para simular o processo bancário e ver a carta final.</p>
+                        
                         <button onclick="simulatePreApproval()" class="btn-primary mt-6">
-                            <i class="ph ph-magnifying-glass text-xl mr-2"></i> Iniciar Busca
+                            <i class="ph ph-magnifying-glass text-xl mr-2"></i> Simular Aprovação
                         </button>
+
+                        <div class="text-left w-full max-w-md bg-white text-gray-900 p-6 rounded-lg shadow-2xl mt-8">
+                            <h4 class="font-black text-xl mb-2 text-center border-b pb-2 ${approvalColor}">STATUS: ${approvalStatus}</h4>
+                            
+                            <p class="text-sm mt-3">**Data:** 28 de Novembro de 2025</p>
+                            <p class="text-sm">**Nome:** ${gameState.playerName}</p>
+                            <p class="text-sm mb-4">**Banco:** Massachusetts Fidelity Bank</p>
+
+                            <h5 class="font-bold mt-4">Termos da Pré-Aprovação:</h5>
+                            <ul class="list-disc list-inside ml-4 text-sm space-y-1">
+                                <li>**Valor Máximo de Compra:** <span class="font-bold">${formatCurrency(gameState.maxOfferPrice)}</span></li>
+                                <li>**Porcentagem de Entrada:** <span class="font-bold">${formatPercent(gameState.downPaymentPct)}</span></li>
+                                <li>**Prazo da Hipoteca:** 30 Anos</li>
+                                <li>**Taxa de Juros Estimada:** <span class="font-bold">${formatPercentPrecision(gameState.effectiveRate)}</span></li>
+                                <li>**Mercado:** ${marketData.name}</li>
+                            </ul>
+
+                            <h5 class="font-bold mt-4">Condições:</h5>
+                            <p class="text-sm">A pré-aprovação está sujeita à inspeção, avaliação e confirmação final de renda e ativos. Seu DTI atual é **${dti}** (Máx. ${MAX_DTI}).</p>
+                             ${!isApproved ? `<p class="text-red-600 mt-3 font-bold">MOTIVO DA NEGATIVA: O DTI excede o limite aceitável de ${MAX_DTI}.</p>` : ''}
+                        </div>
                     `;
                     break;
                 
@@ -1100,7 +1129,7 @@
                 
                 case '3-3': // Fechamento
                     html = `
-                        <h3 class="text-2xl font-bold text-zone-3 mb-4"><i class="ph ph-file-pdf text-2xl mr-2"></i> Fechamento do Contrato</h3>
+                        <h3 class="text-2xl font-bold text-zone-3 mb-4"><i class="ph ph-file-pdf text-2xl mr-2"></i> Fechamento do Contrato (Closing)</h3>
                         <p class="text-gray-400 mb-6">Todos os documentos foram assinados, o dinheiro foi transferido. O imóvel é quase seu!</p>
                         <div class="text-left w-full max-w-md bg-gray-700 p-4 rounded-lg shadow-inner">
                             <p>Preço Final: **${formatCurrency(gameState.offer.price)}**</p>
@@ -1171,7 +1200,7 @@
                 case 'calculator': 
                      const currentRate = getEffectiveRate(gameState.creditScore);
                      html = `
-                         <h3 class="text-xl font-bold mb-4"><i class="ph ph-calculator text-2xl mr-2"></i> Calculadora de Prestação</h3>
+                         <h3 class="text-xl font-bold mb-4"><i class="ph ph-calculator text-2xl mr-2"></i> Calculadora de Prestação (P&I)</h3>
                          <p class="text-sm text-gray-400 mb-4">Simule o pagamento mensal. Sua Taxa Estimada: <span class="text-accent font-bold">${formatPercentPrecision(currentRate)}</span></p>
 
                          <div class="w-full space-y-3 max-w-sm">
