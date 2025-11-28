@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cristiano Jarbas Tycoon</title>
+    <title>Cristiano Jarbas Tycoon - US Market</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/phosphor-icons"></script>
@@ -150,7 +150,7 @@
         <div class="max-w-7xl mx-auto px-4 text-center">
             <h1 class="text-2xl md:text-3xl font-black text-white flex items-center justify-center gap-2">
                 <img src="https://via.placeholder.com/32/FFC300/000000?text=CJ" onerror="this.onerror=null; this.src='https://via.placeholder.com/32/FFC300/000000?text=CJ'" alt="Foto de Perfil" class="h-8 w-8 rounded-full object-cover border-2 border-accent mr-2 smoke-effect">
-                <span>Cristiano Jarbas <span class="text-primary">Tycoon</span></span>
+                <span>Cristiano Jarbas <span class="text-primary">Tycoon</span> (US/MA)</span>
             </h1>
         </div>
     </header>
@@ -264,33 +264,52 @@
         
         // --- CONSTANTES E CONFIGURAÇÃO ---
         
-        // Taxas baseadas no Credit Score
+        // Taxas baseadas no Credit Score (EUA)
         const CREDIT_RATES = {
-            excellent: { min: 760, rate: 0.058, name: "Excelente" }, 
-            good: { min: 670, rate: 0.065, name: "Bom" },
-            fair: { min: 580, rate: 0.075, name: "Regular" },
-            poor: { min: 300, rate: 0.085, name: "Ruim" } 
+            excellent: { min: 740, rate: 0.062, name: "Excelente" }, 
+            good: { min: 670, rate: 0.070, name: "Bom" },
+            fair: { min: 580, rate: 0.082, name: "Regular" },
+            poor: { min: 300, rate: 0.095, name: "Ruim" } 
         };
 
+        // Cenários ajustados para o mercado de Massachusetts/EUA
         const MARKET_SCENARIOS = {
             easy: {
-                name: "Subúrbio Inicial", priceRange: [250000, 350000], taxRate: 0.0085, interestRate: 0.0625,
-                startSavings: 30000, startIncome: 8000, startDebts: { Cartão: 500, Carro: 300, Estudo: 100 }, scoreMult: 1.0
+                name: "Subúrbio de Worcester (Starter)", 
+                priceRange: [350000, 500000], 
+                taxRate: 0.009, // 0.9% de imposto anual (relativo a MA)
+                interestRate: 0.068,
+                startSavings: 35000, 
+                startIncome: 6000, // Renda mensal em USD
+                startDebts: { Cartão: 300, Carro: 400, Estudo: 150 }, 
+                scoreMult: 1.0
             },
             medium: {
-                name: "Metrópole Quente", priceRange: [400000, 650000], taxRate: 0.0120, interestRate: 0.0650,
-                startSavings: 70000, startIncome: 14000, startDebts: { Cartão: 1000, Carro: 500, Estudo: 250 }, scoreMult: 1.5
+                name: "Boston/Cambridge (Quente)", 
+                priceRange: [600000, 950000], 
+                taxRate: 0.0105, // 1.05% de imposto anual
+                interestRate: 0.072,
+                startSavings: 100000, 
+                startIncome: 12000, 
+                startDebts: { Cartão: 800, Carro: 600, Estudo: 350 }, 
+                scoreMult: 1.5
             },
             hard: {
-                name: "Luxo Litorâneo", priceRange: [800000, 1200000], taxRate: 0.0065, interestRate: 0.0675,
-                startSavings: 150000, startIncome: 25000, startDebts: { Cartão: 1500, Carro: 700, Estudo: 500 }, scoreMult: 2.0
+                name: "Cape Cod (Luxo Litorâneo)", 
+                priceRange: [1200000, 1800000], 
+                taxRate: 0.008, 
+                interestRate: 0.075,
+                startSavings: 250000, 
+                startIncome: 20000, 
+                startDebts: { Cartão: 1200, Carro: 900, Estudo: 700 }, 
+                scoreMult: 2.0
             }
         };
 
         const stageOrder = ['start', '1-1', '1-2', '1-3', '1-4', '2-1', '2-2', '2-3', '2-4', '3-1', '3-2', '3-3', '3-4', 'complete'];
         const PMI_RATE = 0.005;
-        const INSURANCE_COST = 1800;
-        const MAX_DTI = 0.43; // Debt-to-Income Ratio
+        const INSURANCE_COST = 2500; // Custo médio anual do seguro residencial nos EUA/MA
+        const MAX_DTI = 0.43; // Debt-to-Income Ratio (Padrão EUA)
 
         let gameState = {
             stage: 'intro', // Começa na tela de introdução/guia
@@ -316,8 +335,10 @@
         let houseIndex = 0; // Para simular diferentes casas na busca
 
         // --- UTILS ---
-        const formatCurrency = (amt) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 }).format(amt);
-        const formatCurrencyFloat = (amt) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(amt);
+        // Alterado para formatar em USD
+        const formatCurrency = (amt) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(amt);
+        const formatCurrencyFloat = (amt) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(amt);
+        
         const formatPercent = (val) => (val * 100).toFixed(2) + '%';
         const formatPercentPrecision = (val) => (val * 100).toFixed(3) + '%';
         const roundToNearest = (val, n) => Math.round(val / n) * n;
@@ -330,7 +351,7 @@
             return `${minutes}m ${seconds}s`;
         };
 
-        // Função para obter a taxa de juros baseada no Credit Score
+        // Função para obter a taxa de juros baseada no Credit Score (Mantida)
         const getEffectiveRate = (score) => {
             if (score >= CREDIT_RATES.excellent.min) {
                 return CREDIT_RATES.excellent.rate;
@@ -435,7 +456,7 @@
                 const appraisalFactor = 0.95 + Math.random() * 0.10; // -5% a +5%
                 const appraisal = roundToNearest(price * appraisalFactor, 1000);
 
-                // Problemas de Inspeção (1 a 3 problemas)
+                // Problemas de Inspeção (1 a 3 problemas) - Custo de 5k USD por problema
                 const issues = Math.floor(1 + Math.random() * 3);
 
                 listings.push({ id: `H${houseIndex++}`, price, beds, baths, size, appraisal, issues });
@@ -480,7 +501,7 @@
         const saveRanking = async (name, score, time) => {
             if (!db) return showModal("Erro de Ranking", "O serviço de ranking não está ativo.");
             try {
-                await db.collection("rankings").add({
+                await db.collection("rankings_us").add({ // Alterado para 'rankings_us'
                     name: name,
                     score: score,
                     timeMs: time,
@@ -496,7 +517,7 @@
         const loadRanking = async () => {
             if (!db) return [];
             try {
-                const snapshot = await db.collection("rankings")
+                const snapshot = await db.collection("rankings_us") // Alterado para 'rankings_us'
                                              .orderBy("score", "desc")
                                              .limit(10)
                                              .get();
@@ -676,7 +697,6 @@
 
         window.simulatePreApproval = () => {
             const maxBudget = gameState.maxOfferPrice;
-            const status = maxBudget > 0 ? "APROVADO!" : "REPROVADO.";
             
             if (maxBudget > 0) {
                  showModal("Pré-Aprovação Recebida", 
@@ -685,7 +705,7 @@
                 );
             } else {
                  showModal("Pré-Aprovação Negada", 
-                    `Sua relação Dívida/Renda (${(gameState.income * MAX_DTI).toFixed(0)}/${Object.values(gameState.currentDebts).reduce((sum, debt) => sum + debt, 0)}) está muito alta. Tente aumentar sua Renda na Etapa 1-1.`, 
+                    `Sua relação Dívida/Renda (**${(Object.values(gameState.currentDebts).reduce((sum, debt) => sum + debt, 0) / gameState.income).toFixed(2)}**) está muito alta. Tente aumentar sua Renda ou reduzir Dívidas para um DTI máximo de **${MAX_DTI}**.`, 
                     "OK"
                 );
             }
@@ -735,8 +755,8 @@
                  return; // Fica na mesma etapa (2-4)
             }
             
-            // Simulação de negociação: oferta aceita se for 95% do preço ou mais
-            const accepted = offerPrice >= propertyPrice * 0.95 || offerPrice >= gameState.maxOfferPrice; 
+            // Simulação de negociação: oferta aceita se for 95% do preço ou mais (mercado quente)
+            const accepted = offerPrice >= propertyPrice * 0.95 || offerPrice >= gameState.maxOfferPrice * 0.98; // Mais fácil aceitar se estiver no limite do orçamento
             
             if (accepted) {
                 statusMessage = `Parabéns! Sua oferta de **${formatCurrency(offerPrice)}** foi aceita! Estamos sob contrato. Próximo passo: Inspeção.`;
@@ -761,9 +781,10 @@
              }
 
              if (negotiationInput > 0) {
-                 // Simulação: Aceita metade do desconto pedido, no máximo 50% do valor dos problemas.
-                 const maxDiscount = (issues * 10000); // 10k por problema
-                 const acceptedDiscount = Math.min(negotiationInput, maxDiscount * 0.5);
+                 // Simulação: Custo estimado de 5k USD por problema
+                 const maxDiscount = (issues * 5000); 
+                 // Aceita 70% do desconto negociado, limitado ao custo máximo dos problemas
+                 const acceptedDiscount = Math.min(negotiationInput * 0.7, maxDiscount); 
                  
                  const newOfferPrice = offerPrice - acceptedDiscount;
 
@@ -791,7 +812,7 @@
             } else {
                  // GAP entre avaliação e preço
                 const gap = offerPrice - appraisalValue;
-                message = `Atenção! O imóvel foi avaliado em apenas **${formatCurrency(appraisalValue)}**, o que é **${formatCurrency(gap)}** abaixo do seu preço de contrato. Você terá que cobrir essa diferença em dinheiro (Cash) ou negociar o preço novamente.`;
+                message = `Atenção! O imóvel foi avaliado em apenas **${formatCurrency(appraisalValue)}**, o que é **${formatCurrency(gap)}** abaixo do seu preço de contrato. O banco só financiará o valor da avaliação. Você precisará cobrir essa diferença em dinheiro (Cash) no fechamento.`;
             }
             
             showModal("Avaliação Bancária", message, "OK");
@@ -804,13 +825,16 @@
         window.completeClosing = () => {
             const offerPrice = gameState.offer.price;
             const downPayment = offerPrice * gameState.downPaymentPct;
-            const loanAmount = offerPrice * (1 - gameState.downPaymentPct);
+            
+            // O valor do empréstimo será o menor entre (Preço da Oferta - Entrada) ou (Valor da Avaliação - Entrada)
+            const loanAmountMax = offerPrice - downPayment;
+            const loanAmountFinal = Math.min(loanAmountMax, gameState.appraisalValue - downPayment); 
 
             let message = `Parabéns! O processo de fechamento foi concluído.
             <ul class="list-disc list-inside text-left mt-3 space-y-1">
                 <li>Preço Final de Contrato: **${formatCurrency(offerPrice)}**</li>
                 <li>Entrada (${formatPercent(gameState.downPaymentPct)}): **${formatCurrency(downPayment)}**</li>
-                <li>Empréstimo (Hipoteca): **${formatCurrency(loanAmount)}**</li>
+                <li>Empréstimo (Hipoteca) Final: **${formatCurrency(loanAmountFinal)}**</li>
             </ul>
             <p class="mt-3">Você venceu a fase de Fechamento!</p>`;
             
@@ -849,8 +873,8 @@
             if (id === 'intro' && !gameState.market) {
                  html = `
                     <div class="text-3xl font-bold text-primary mb-4">Bem-vindo ao Cristiano Jarbas Tycoon</div>
-                    <p class="text-gray-400 mb-6">Este é o seu jogo de simulação de compra de imóvel. **Seu objetivo é comprar um imóvel o mais rápido e de forma mais eficiente possível!**</p>
-                    <p class="text-gray-400">Comece selecionando o Mercado de atuação no botão **INICIAR** (canto inferior direito).</p>
+                    <p class="text-gray-400 mb-6">Esta é uma simulação de compra de imóvel no mercado de **Massachusetts (EUA)**.</p>
+                    <p class="text-gray-400">Seu objetivo é comprar um imóvel o mais rápido e de forma mais eficiente possível, negociando no mercado americano. Comece no botão **INICIAR**.</p>
                     <button onclick="renderCenterContent('start')" class="btn-primary mt-6">
                         <i class="ph ph-flag-checkered text-xl"></i> INICIAR JOGO
                     </button>
@@ -866,7 +890,7 @@
                         <div class="mb-6 relative">
                             <img src="https://via.placeholder.com/128x128?text=LOGO" alt="Logo da Imobiliária" class="w-32 h-32 object-contain mx-auto smoke-effect">
                         </div>
-                        <h2 class="text-3xl font-black text-secondary mb-4">Selecione o Mercado</h2>
+                        <h2 class="text-3xl font-black text-secondary mb-4">Selecione o Mercado (MA - EUA)</h2>
                         <div class="grid gap-4 w-full">
                             ${Object.entries(MARKET_SCENARIOS).map(([k, v]) => `
                                 <button onclick="selectMarket('${k}')" class="bg-gray-800 p-4 rounded-xl hover:bg-gray-700 border border-gray-600 text-left">
@@ -882,12 +906,12 @@
                 case '1-1': // Renda
                     html = `
                         <h3 class="text-2xl font-bold text-primary mb-4"><i class="ph ph-money text-2xl mr-2"></i> Renda e Perfil</h3>
-                        <p class="text-gray-400 mb-6">Preencha seus dados financeiros atuais para calcular seu poder de compra inicial.</p>
+                        <p class="text-gray-400 mb-6">Preencha seus dados financeiros atuais (valores em Dólar).</p>
                         <div class="w-full max-w-sm space-y-3 text-left">
-                            <label class="label-text">Renda Mensal Bruta (R$)</label>
+                            <label class="label-text">Renda Mensal Bruta ($)</label>
                             <input type="number" id="input-income" class="input-field" value="${gameState.income}" placeholder="Ex: 10000">
 
-                            <label class="label-text">Economias/Entrada (R$)</label>
+                            <label class="label-text">Economias/Entrada ($)</label>
                             <input type="number" id="input-savings" class="input-field" value="${gameState.savings}" placeholder="Ex: 50000">
                             
                             <label class="label-text">Credit Score (300-850)</label>
@@ -902,10 +926,10 @@
                 case '1-2': // Dívidas
                     html = `
                         <h3 class="text-2xl font-bold text-primary mb-4"><i class="ph ph-piggy-bank text-2xl mr-2"></i> Dívidas Mensais</h3>
-                        <p class="text-gray-400 mb-6">Informe o pagamento mensal mínimo de suas dívidas atuais (Cartão, Empréstimo, Carro, etc.)</p>
+                        <p class="text-gray-400 mb-6">Informe o pagamento mensal mínimo de suas dívidas atuais (em Dólar).</p>
                         <div class="w-full max-w-sm space-y-3 text-left">
                              ${Object.entries(gameState.currentDebts).map(([name, value]) => `
-                                <label class="label-text">${name} (R$ / Mês)</label>
+                                <label class="label-text">${name} ($ / Mês)</label>
                                 <input type="number" name="${name}" class="input-field debt-input" value="${value}" placeholder="Pagamento Mensal">
                             `).join('')}
                         </div>
@@ -918,14 +942,14 @@
                 case '1-3': // Entrada
                     html = `
                         <h3 class="text-2xl font-bold text-primary mb-4"><i class="ph ph-percent text-2xl mr-2"></i> Entrada (Down Payment)</h3>
-                        <p class="text-gray-400 mb-6">Quanto da sua economia você está disposto a usar como entrada para o imóvel?</p>
+                        <p class="text-gray-400 mb-6">Seu orçamento depende da porcentagem de entrada. (Min. 3%, Recomendado 20%).</p>
                         <div class="w-full max-w-sm space-y-3 text-left">
                             <p class="text-sm text-gray-500">Seu Orçamento Máximo é: **${formatCurrency(gameState.maxOfferPrice)}**</p>
                             <p class="text-sm text-gray-500">Suas Economias Atuais: **${formatCurrency(gameState.savings)}**</p>
 
                             <label class="label-text">Entrada (%)</label>
                             <input type="number" id="input-down-payment-pct" class="input-field" value="${(gameState.downPaymentPct * 100).toFixed(0)}" min="3" max="100" placeholder="Ex: 20">
-                            <p class="text-xs text-gray-500 mt-2">Menos de 20% exige Pagamento de PMI (Seguro da Hipoteca).</p>
+                            <p class="text-xs text-gray-500 mt-2">Menos de 20% exige Pagamento de PMI (Private Mortgage Insurance).</p>
                         </div>
                         <button onclick="saveDownPaymentData()" class="btn-primary mt-6">
                             <i class="ph ph-file-text text-xl mr-2"></i> Próxima Etapa
@@ -938,7 +962,7 @@
                     html = `
                         <h3 class="text-2xl font-bold text-primary mb-4"><i class="ph ph-file-text text-2xl mr-2"></i> Revisão e Pré-Aprovação</h3>
                         <div class="text-left w-full max-w-md bg-gray-700 p-4 rounded-lg shadow-inner">
-                            <h4 class="font-bold text-accent mb-2">Seu Perfil de Risco:</h4>
+                            <h4 class="font-bold text-accent mb-2">Seu Perfil de Risco (EUA):</h4>
                             <p>Renda Mensal: **${formatCurrency(gameState.income)}**</p>
                             <p>Dívidas Mensais: **${formatCurrency(Object.values(gameState.currentDebts).reduce((sum, debt) => sum + debt, 0))}**</p>
                             <p>Relação Dívida/Renda (DTI): **${dti}** (Máx: ${MAX_DTI})</p>
@@ -1019,7 +1043,7 @@
                         <h3 class="text-2xl font-bold text-secondary mb-4"><i class="ph ph-pencil-line text-2xl mr-2"></i> Fazer Oferta</h3>
                         <p class="text-gray-400 mb-6">Imóvel Selecionado (${gameState.property.id}): Preço de Lista **${formatCurrency(gameState.property.price)}**</p>
                         <div class="w-full max-w-sm space-y-3 text-left">
-                             <label class="label-text">Sua Oferta (R$)</label>
+                             <label class="label-text">Sua Oferta ($)</label>
                             <input type="number" id="input-offer-price" class="input-field" value="${gameState.property.price}" placeholder="Valor da Oferta">
                         </div>
                         <button onclick="submitOffer()" class="btn-primary mt-6">
@@ -1032,7 +1056,7 @@
                     const prop = gameState.property;
                     const issues = prop ? prop.issues : 0;
                     const message = issues > 0 
-                        ? `<p class="text-red-400 font-bold">Atenção: A inspeção encontrou **${issues}** problemas (Ex: Telhado velho, encanamento). Estime o custo do reparo (R$10.000 por problema) e negocie um desconto.</p>`
+                        ? `<p class="text-red-400 font-bold">Atenção: A inspeção encontrou **${issues}** problemas (Ex: Telhado velho, encanamento). Estime o custo do reparo (Cerca de $5.000 por problema) e negocie um desconto.</p>`
                         : `<p class="text-green-400 font-bold">Ótimo! A inspeção não encontrou problemas significativos.</p>`;
                         
                     html = `
@@ -1040,7 +1064,7 @@
                         ${message}
                         <div class="w-full max-w-sm space-y-3 text-left mt-4">
                             <p class="text-sm text-gray-500">Preço Contratado: **${formatCurrency(gameState.offer.price)}**</p>
-                            <label class="label-text">Desconto Negociado (R$)</label>
+                            <label class="label-text">Desconto Negociado ($)</label>
                             <input type="number" id="input-inspection-negotiation" class="input-field" value="0" placeholder="0 (se for aceitar como está)">
                         </div>
                         <button onclick="negotiateInspection()" class="btn-primary mt-6">
@@ -1120,7 +1144,7 @@
                     
                 case 'ranking':
                     html = `
-                         <h3 class="text-xl font-bold mb-4"><i class="ph ph-trophy text-2xl mr-2"></i> Melhores Corretores</h3>
+                         <h3 class="text-xl font-bold mb-4"><i class="ph ph-trophy text-2xl mr-2"></i> Melhores Corretores (US/MA)</h3>
                          <div id="ranking-list-container" class="w-full text-left">Carregando ranking...</div>
                      `;
                      content.innerHTML = html;
@@ -1151,7 +1175,7 @@
                          <p class="text-sm text-gray-400 mb-4">Simule o pagamento mensal. Sua Taxa Estimada: <span class="text-accent font-bold">${formatPercentPrecision(currentRate)}</span></p>
 
                          <div class="w-full space-y-3 max-w-sm">
-                             <label class="label-text">Valor do Empréstimo (R$)</label>
+                             <label class="label-text">Valor do Empréstimo ($)</label>
                              <input type="number" id="calc-loan" class="input-field" value="300000" oninput="calculateMortgage()">
 
                              <label class="label-text">Taxa Anual (%)</label>
