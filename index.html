@@ -955,6 +955,11 @@
                     break;
                 
                 case '2-1': // Buscar
+                    // *** CORREÇÃO APLICADA AQUI ***: Garante que as listagens sejam geradas
+                    if (currentListings.length === 0 && gameState.market) {
+                        generateListings();
+                    }
+                    
                     html = `
                         <h3 class="text-2xl font-bold text-secondary mb-4"><i class="ph ph-magnifying-glass text-2xl mr-2"></i> Buscar Imóveis</h3>
                         <p class="text-gray-400 mb-6">Seu orçamento máximo é **${formatCurrency(gameState.maxOfferPrice)}**. Selecione um imóvel para avançar.</p>
