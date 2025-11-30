@@ -712,12 +712,13 @@
             
             if (maxBudget > 0) {
                  showModal("Pré-Aprovação Recebida", 
-                    `Parabéns! Você foi pré-aprovado. Seu limite máximo de compra é de **${formatCurrency(maxBudget)}**.`, 
+                    `Parabéns! Você foi pré-aprovado. Seu limite máximo de compra é de **${formatCurrency(maxBudget)}**.` + 
+                    `<p class="mt-2 text-sm text-gray-500">Taxa efetiva: ${formatPercentPrecision(gameState.effectiveRate)}</p>`,
                     "OK"
                 );
             } else {
                  showModal("Pré-Aprovação Negada", 
-                    `Sua relação Dívida/Renda (**${dti.toFixed(2)}**) está acima do limite de **${MAX_DTI}**.`, 
+                    `Sua relação Dívida/Renda (**${dti}**) está acima do limite de **${MAX_DTI}**.`, 
                     "OK"
                 );
             }
@@ -1138,7 +1139,7 @@
                     
                 case 'ranking':
                     html = `
-                         <h3 class="text-xl font-bold mb-4"><i class="ph ph-trophy text-2xl mr-2"></i> Melhores Corretores (US/MA)</h3>
+                         <h3 class="text-xl font-bold mb-4"><i class="ph ph-trophy text-2xl mr-2"></i> Compradores que conseguiram!</h3>
                          <div id="ranking-list-container" class="w-full text-left text-gray-400">Carregando ranking...</div>
                      `;
                      content.innerHTML = html;
@@ -1206,9 +1207,10 @@
                 case 'social':
                     const socialLinks = [
                         { name: "Website Oficial", icon: "ph-globe-simple", url: "https://www.cristianojarbas.com/" },
-                        { name: "Instagram", icon: "ph-instagram-logo", url: "https://www.instagram.com/cristianojarbas" },
+                        { name: "Facebook", icon: "ph-facebook-logo", url: "https://www.facebook.com/cristianojarbasrealestate" },
+                        { name: "Instagram", icon: "ph-instagram-logo", url: "https://www.instagram.com/cristianojarbasrealestate/" },
                         { name: "YouTube", icon: "ph-youtube-logo", url: "https://www.youtube.com/@cristianojarbas" },
-                        { name: "LinkedIn", icon: "ph-linkedin-logo", url: "https://www.linkedin.com/in/cristianojarbas" }
+                        { name: "LinkedIn", icon: "ph-linkedin-logo", url: "https://www.linkedin.com/in/cristiano-jarbas-9315511b/" }
                     ];
 
                     html = `
