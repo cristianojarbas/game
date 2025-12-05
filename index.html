@@ -24,6 +24,7 @@
         }
         
         .btn-primary {
+            /* Otimizado para toque no mobile: padding generoso e largura total */
             @apply px-6 py-3 rounded-xl font-bold transition duration-200 shadow-lg text-white w-full flex items-center justify-center gap-2;
             background-color: var(--color-secondary);
         }
@@ -34,7 +35,8 @@
         }
 
         .input-field {
-            @apply w-full p-2 bg-white text-black border border-gray-600 rounded mb-2 focus:border-accent focus:outline-none transition;
+            /* Input claro para facilitar a leitura no mobile */
+            @apply w-full p-3 bg-white text-black border border-gray-600 rounded mb-2 focus:border-accent focus:outline-none transition;
             color: black !important; 
         }
         .label-text {
@@ -46,64 +48,44 @@
         }
         
         .game-board {
+            /* Garante que o tabuleiro não ultrapasse a largura da tela em dispositivos pequenos */
             display: grid;
             grid-template-columns: repeat(5, 1fr);
             grid-template-rows: repeat(5, 1fr);
-            gap: 10px;
+            gap: 8px; /* Reduzido o gap para caber melhor no mobile */
+            max-width: 95vw; /* Ajuste para não ter scroll lateral */
             max-width: 800px;
             aspect-ratio: 1 / 1;
-            margin: 20px auto;
-            border: 10px solid var(--color-secondary);
-            border-radius: 20px;
+            margin: 15px auto; /* Margin menor no mobile */
+            border: 8px solid var(--color-secondary); /* Borda menor */
+            border-radius: 18px;
             background-color: #0d1117;
         }
 
         .board-space {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            padding: 4px;
-            border-radius: 12px;
-            cursor: pointer;
-            transition: transform 0.1s ease, box-shadow 0.2s ease;
-            text-align: center;
+            padding: 2px; /* Reduzido padding para caber o texto */
+            border-radius: 10px;
             font-weight: 600;
-            color: white;
-            font-size: 0.8rem;
-            position: relative;
+            font-size: 0.7rem; /* Tamanho de fonte menor por padrão */
         }
 
-        @media (max-width: 768px) {
-            .board-space { font-size: 0.6rem; }
-            .board-space i { font-size: 1.2rem; }
+        .board-space i {
+             font-size: 1.2rem; /* Ícones menores por padrão */
         }
 
-        .board-space.disabled {
-            opacity: 0.3;
-            cursor: not-allowed;
-            filter: grayscale(100%);
+        /* AJUSTES ESPECÍFICOS PARA DISPOSITIVOS MENORES (CELULAR) */
+        @media (max-width: 640px) {
+             .board-space { font-size: 0.55rem; padding: 2px; }
+             .board-space i { font-size: 1rem; }
+             .game-board { gap: 6px; border: 6px solid var(--color-secondary); }
+             .center-display { padding: 10px; }
+             
+             .text-3xl { font-size: 1.5rem; } /* Títulos menores */
+             .text-2xl { font-size: 1.25rem; } /* Subtítulos menores */
+             .center-content { min-height: 250px; } /* Garante altura mínima para o conteúdo central */
         }
-        .board-space:not(.disabled):hover {
-            transform: scale(1.05);
-            box-shadow: 0 0 15px rgba(255, 255, 255, 0.3);
-            z-index: 10;
-        }
-
-        /* ESTILO PARA DESTAQUE DO PRÓXIMO PASSO (AGORA AZUL) */
-        .stage-active {
-            box-shadow: 0 0 20px var(--color-primary); 
-            border: 2px solid var(--color-primary);
-            z-index: 20;
-            transform: scale(1.05);
-        }
-
-        .zone-1 { background-color: var(--color-primary); } 
-        .zone-2 { background-color: var(--color-secondary); } 
-        .zone-3 { background-color: #475569; } 
-        .space-start { background-color: #10B981; } 
-
-        /* Layout do Tabuleiro */
+        
+        /* Layout do Tabuleiro - Mantido */
         .space-start { grid-area: 5 / 5 / 6 / 6; }
         .space-1-1 	{ grid-area: 5 / 4 / 6 / 5; }
         .space-1-2 	{ grid-area: 5 / 3 / 6 / 4; }
@@ -122,8 +104,8 @@
             grid-area: 2 / 2 / 5 / 5;
             background-color: #1f2937;
             border-radius: 12px;
-            padding: 20px;
-            overflow-y: auto;
+            padding: 15px; /* Padding ajustado */
+            overflow-y: auto; /* Garante scroll em conteúdo longo */
             border: 1px solid #374151;
         }
 
@@ -135,86 +117,103 @@
             align-items: center;
             text-align: center;
         }
+        
+        /* Modal otimizado para mobile */
+        #modal > div {
+            @apply w-full max-w-lg mx-2; /* Ocupa quase a largura total da tela */
+        }
+        @media (max-width: 640px) {
+             /* O modal ocupa a tela inteira, removendo bordas arredondadas e margin lateral */
+            #modal > div {
+                @apply w-full max-w-full mx-0 rounded-none min-h-screen;
+            }
+        }
 
-        .ranking-list {
-            @apply w-full space-y-2;
+
+        .stage-active {
+            box-shadow: 0 0 20px var(--color-primary); 
+            border: 2px solid var(--color-primary);
+            z-index: 20;
+            transform: scale(1.05);
         }
-        .ranking-item {
-            @apply flex justify-between p-3 rounded-lg bg-gray-700 items-center;
-        }
+        .zone-1 { background-color: var(--color-primary); } 
+        .zone-2 { background-color: var(--color-secondary); } 
+        .zone-3 { background-color: #475569; } 
+        .space-start { background-color: #10B981; } 
+
     </style>
 </head>
 <body class="min-h-screen flex flex-col">
 
-    <header class="bg-gray-900 shadow-lg py-4 border-b border-gray-800">
+    <header class="bg-gray-900 shadow-lg py-3 border-b border-gray-800">
         <div class="max-w-7xl mx-auto px-4 text-center">
-            <h1 class="text-2xl md:text-3xl font-black text-white flex items-center justify-center gap-2">
-                <img src="https://via.placeholder.com/32/FFC300/000000?text=CJ" onerror="this.onerror=null; this.src='https://via.placeholder.com/32/FFC300/000000?text=CJ'" alt="Foto de Perfil" class="h-8 w-8 rounded-full object-cover border-2 border-accent mr-2 smoke-effect">
-                <span>Cristiano Jarbas <span class="text-primary">Tycoon</span> (US/MA)</span>
+            <h1 class="text-xl md:text-3xl font-black text-white flex items-center justify-center gap-1">
+                <img src="https://via.placeholder.com/32/FFC300/000000?text=CJ" onerror="this.onerror=null; this.src='https://via.placeholder.com/32/FFC300/000000?text=CJ'" alt="Foto de Perfil" class="h-6 w-6 md:h-8 md:w-8 rounded-full object-cover border-2 border-accent smoke-effect">
+                <span>CJ <span class="text-primary hidden sm:inline">Tycoon</span> (US/MA)</span>
             </h1>
         </div>
     </header>
 
-    <main class="flex-grow p-4">
-        <div id="game-status" class="text-center mb-4 text-sm md:text-lg font-semibold text-gray-400">
-            Mercado: <span id="market-display" class="text-white">...</span> | Orçamento Máximo: <span id="budget-display" class="text-white">...</span>
+    <main class="flex-grow p-2 sm:p-4">
+        <div id="game-status" class="text-center mb-3 text-sm font-semibold text-gray-400">
+            Mercado: <span id="market-display" class="text-white">...</span> | Orçamento: <span id="budget-display" class="text-white">...</span>
         </div>
 
         <div class="game-board">
             <div id="space-start" class="board-space space-start" onclick="handleSpaceClick('start')">
-                <i class="ph ph-flag-checkered text-3xl mb-1"></i>
+                <i class="ph ph-flag-checkered mb-1"></i>
                 INICIAR
             </div>
             
             <div id="space-ranking" class="board-space zone-1" onclick="renderCenterContent('ranking')" style="grid-area: 2 / 5 / 3 / 6; background-color: #374151;">
-                <i class="ph ph-trophy text-2xl mb-1"></i> RANKING
+                <i class="ph ph-trophy mb-1"></i> RANKING
             </div>
 
             <div id="space-calculator" class="board-space zone-1" onclick="renderCenterContent('calculator')" style="grid-area: 3 / 5 / 4 / 6; background-color: #374151;">
-                <i class="ph ph-calculator text-2xl mb-1"></i> CALCULADORA
+                <i class="ph ph-calculator mb-1"></i> CALC.
             </div>
             
             <div id="space-social" class="board-space zone-1" onclick="renderCenterContent('social')" style="grid-area: 4 / 5 / 5 / 6; background-color: #059669;"> 
-                <i class="ph ph-share-network text-2xl mb-1"></i> SOCIAL
+                <i class="ph ph-share-network mb-1"></i> SOCIAL
             </div>
 
             <div id="space-1-1" class="board-space zone-1 disabled" onclick="handleSpaceClick('1-1')">
-                <i class="ph ph-money text-2xl mb-1"></i> Renda
+                <i class="ph ph-money mb-1"></i> Renda
             </div>
             <div id="space-1-2" class="board-space zone-1 disabled" onclick="handleSpaceClick('1-2')">
-                <i class="ph ph-piggy-bank text-2xl mb-1"></i> Dívidas
+                <i class="ph ph-piggy-bank mb-1"></i> Dívidas
             </div>
             <div id="space-1-3" class="board-space zone-1 disabled" onclick="handleSpaceClick('1-3')">
-                <i class="ph ph-percent text-2xl mb-1"></i> Entrada
+                <i class="ph ph-percent mb-1"></i> Entrada
             </div>
             <div id="space-1-4" class="board-space zone-1 disabled" onclick="handleSpaceClick('1-4')">
-                <i class="ph ph-file-text text-2xl mb-1"></i> Pré-Aprovação
+                <i class="ph ph-file-text mb-1"></i> Pré-Ap.
             </div>
 
             <div id="space-2-1" class="board-space zone-2 disabled" onclick="handleSpaceClick('2-1')">
-                <i class="ph ph-magnifying-glass text-2xl mb-1"></i> Buscar
+                <i class="ph ph-magnifying-glass mb-1"></i> Buscar
             </div>
             <div id="space-2-2" class="board-space zone-2 disabled" onclick="handleSpaceClick('2-2')">
-                <i class="ph ph-chart-bar text-2xl mb-1"></i> Comparar
+                <i class="ph ph-chart-bar mb-1"></i> Comparar
             </div>
             <div id="space-2-3" class="board-space zone-2 disabled" onclick="handleSpaceClick('2-3')">
-                <i class="ph ph-house-line text-2xl mb-1"></i> Selecionar
+                <i class="ph ph-house-line mb-1"></i> Sel.
             </div>
             <div id="space-2-4" class="board-space zone-2 disabled" onclick="handleSpaceClick('2-4')">
-                <i class="ph ph-pencil-line text-2xl mb-1"></i> Oferta
+                <i class="ph ph-pencil-line mb-1"></i> Oferta
             </div>
 
             <div id="space-3-1" class="board-space zone-3 disabled" onclick="handleSpaceClick('3-1')">
-                <i class="ph ph-toolbox text-2xl mb-1"></i> Inspeção
+                <i class="ph ph-toolbox mb-1"></i> Insp.
             </div>
             <div id="space-3-2" class="board-space zone-3 disabled" onclick="handleSpaceClick('3-2')">
-                <i class="ph ph-bank text-2xl mb-1"></i> Avaliação
+                <i class="ph ph-bank mb-1"></i> Aval.
             </div>
             <div id="space-3-3" class="board-space zone-3 disabled" onclick="handleSpaceClick('3-3')">
-                <i class="ph ph-file-pdf text-2xl mb-1"></i> Fechamento
+                <i class="ph ph-file-pdf mb-1"></i> Fecha.
             </div>
             <div id="space-3-4" class="board-space zone-3 disabled" onclick="handleSpaceClick('3-4')">
-                <i class="ph ph-key text-2xl mb-1"></i> Chaves!
+                <i class="ph ph-key mb-1"></i> Chaves!
             </div>
 
             <div class="center-display">
@@ -224,8 +223,8 @@
         </div>
     </main>
 
-    <div id="modal" class="fixed inset-0 bg-black bg-opacity-80 hidden items-center justify-center p-4 z-50">
-        <div class="bg-white text-gray-900 w-full max-w-lg rounded-2xl shadow-2xl overflow-hidden">
+    <div id="modal" class="fixed inset-0 bg-black bg-opacity-80 hidden items-center justify-center p-0 sm:p-4 z-50">
+        <div class="bg-white text-gray-900 w-full max-w-lg rounded-none sm:rounded-2xl shadow-2xl overflow-hidden min-h-screen sm:min-h-0">
             <div class="bg-gray-100 px-6 py-4 border-b border-gray-200 flex justify-between items-center">
                 <h3 id="modal-title" class="text-lg font-bold flex items-center"></h3>
                 <button onclick="hideModal()" class="text-gray-500 hover:text-red-500">
@@ -708,7 +707,7 @@
         window.simulatePreApproval = () => {
             const maxBudget = gameState.maxOfferPrice;
             const totalMonthlyDebt = Object.values(gameState.currentDebts).reduce((sum, debt) => sum + debt, 0);
-            const dti = totalMonthlyDebt / gameState.income;
+            const dti = (totalMonthlyDebt / gameState.income).toFixed(2);
             
             if (maxBudget > 0) {
                  showModal("Pré-Aprovação Recebida", 
@@ -871,7 +870,7 @@
             
             if (id === 'intro' && !gameState.market) {
                  html = `
-                    <div class="text-3xl font-bold text-primary mb-4">Bem-vindo ao Cristiano Jarbas Tycoon</div>
+                    <div class="text-2xl font-bold text-primary mb-4">Bem-vindo ao Cristiano Jarbas Tycoon</div>
                     <p class="text-gray-400 mb-6">Simulação de compra de imóvel no mercado de **Massachusetts (EUA)**.</p>
                     <p class="text-gray-400">Comece no botão **INICIAR**.</p>
                     <button onclick="renderCenterContent('start')" class="btn-primary mt-6">
@@ -887,9 +886,9 @@
                 case 'start': // SELEÇÃO DE MERCADO
                     html = `
                         <div class="mb-6 relative">
-                            <img src="https://via.placeholder.com/128x128?text=LOGO" alt="Logo da Imobiliária" class="w-32 h-32 object-contain mx-auto smoke-effect">
+                            <img src="https://via.placeholder.com/128x128?text=LOGO" alt="Logo da Imobiliária" class="w-28 h-28 object-contain mx-auto smoke-effect">
                         </div>
-                        <h2 class="text-3xl font-black text-secondary mb-4">Selecione o Mercado (MA - EUA)</h2>
+                        <h2 class="text-2xl font-black text-secondary mb-4">Selecione o Mercado (MA - EUA)</h2>
                         <div class="grid gap-4 w-full">
                             ${Object.entries(MARKET_SCENARIOS).map(([k, v]) => `
                                 <button onclick="selectMarket('${k}')" class="bg-gray-800 p-4 rounded-xl hover:bg-gray-700 border border-gray-600 text-left">
@@ -903,7 +902,7 @@
 
                 case '1-1': // Renda
                     html = `
-                        <h3 class="text-2xl font-bold text-primary mb-4"><i class="ph ph-money text-2xl mr-2"></i> Renda e Perfil</h3>
+                        <h3 class="text-xl font-bold text-primary mb-4"><i class="ph ph-money text-2xl mr-2"></i> Renda e Perfil</h3>
                         <p class="text-gray-400 mb-6">Preencha seus dados financeiros atuais (valores em Dólar).</p>
                         <div class="w-full max-w-sm space-y-3 text-left">
                             <label class="label-text">Renda Mensal Bruta ($)</label>
@@ -923,7 +922,7 @@
 
                 case '1-2': // Dívidas
                     html = `
-                        <h3 class="text-2xl font-bold text-primary mb-4"><i class="ph ph-piggy-bank text-2xl mr-2"></i> Dívidas Mensais</h3>
+                        <h3 class="text-xl font-bold text-primary mb-4"><i class="ph ph-piggy-bank text-2xl mr-2"></i> Dívidas Mensais</h3>
                         <p class="text-gray-400 mb-6">Informe o pagamento mensal mínimo de suas dívidas atuais (em Dólar).</p>
                         <div class="w-full max-w-sm space-y-3 text-left">
                              ${Object.entries(gameState.currentDebts).map(([name, value]) => `
@@ -939,7 +938,7 @@
 
                 case '1-3': // Entrada
                     html = `
-                        <h3 class="text-2xl font-bold text-primary mb-4"><i class="ph ph-percent text-2xl mr-2"></i> Entrada (Down Payment)</h3>
+                        <h3 class="text-xl font-bold text-primary mb-4"><i class="ph ph-percent text-2xl mr-2"></i> Entrada (Down Payment)</h3>
                         <p class="text-gray-400 mb-6">Entrada (Min. 3%, Recomendado 20%).</p>
                         <div class="w-full max-w-sm space-y-3 text-left">
                             <p class="text-sm text-gray-500">Seu Orçamento Máximo é: **${formatCurrency(gameState.maxOfferPrice)}**</p>
@@ -960,7 +959,7 @@
                     const approvalColor = isApproved ? 'text-green-500' : 'text-red-500';
 
                     html = `
-                        <h3 class="text-2xl font-bold text-primary mb-4"><i class="ph ph-file-text text-2xl mr-2"></i> Carta de Pré-Aprovação</h3>
+                        <h3 class="text-xl font-bold text-primary mb-4"><i class="ph ph-file-text text-2xl mr-2"></i> Carta de Pré-Aprovação</h3>
                         <p class="text-gray-400 mb-6">Simule o processo bancário para ver o limite de compra.</p>
                         
                         <button onclick="simulatePreApproval()" class="btn-primary mt-6">
@@ -987,7 +986,7 @@
                     }
                     
                     html = `
-                        <h3 class="text-2xl font-bold text-secondary mb-4"><i class="ph ph-magnifying-glass text-2xl mr-2"></i> Buscar Imóveis</h3>
+                        <h3 class="text-xl font-bold text-secondary mb-4"><i class="ph ph-magnifying-glass text-2xl mr-2"></i> Buscar Imóveis</h3>
                         <p class="text-gray-400 mb-6">Orçamento máximo: **${formatCurrency(gameState.maxOfferPrice)}**.</p>
                         <div class="w-full space-y-3 text-left">
                             ${currentListings.map(l => `
@@ -1006,7 +1005,7 @@
 
                 case '2-2': // Comparar 
                     html = `
-                        <h3 class="text-2xl font-bold text-secondary mb-4"><i class="ph ph-chart-bar text-2xl mr-2"></i> Comparar Listagens</h3>
+                        <h3 class="text-xl font-bold text-secondary mb-4"><i class="ph ph-chart-bar text-2xl mr-2"></i> Comparar Listagens</h3>
                         <p class="text-gray-400 mb-6">Analise as opções geradas no mercado.</p>
                         <div class="w-full space-y-3 text-left">
                             ${currentListings.map(l => `
@@ -1026,7 +1025,7 @@
 
                 case '2-3': // Selecionar (Redireciona para a lista)
                     html = `
-                         <h3 class="text-2xl font-bold text-secondary mb-4"><i class="ph ph-house-line text-2xl mr-2"></i> Selecionar Imóvel</h3>
+                         <h3 class="text-xl font-bold text-secondary mb-4"><i class="ph ph-house-line text-2xl mr-2"></i> Selecionar Imóvel</h3>
                          <p class="text-gray-400 mb-6">Selecione o imóvel que você deseja para continuar o processo.</p>
                          <button onclick="renderCenterContent('2-1')" class="btn-primary w-2/3">
                             <i class="ph ph-magnifying-glass text-xl mr-2"></i> Ver Listagens
@@ -1040,7 +1039,7 @@
                         break;
                     }
                     html = `
-                        <h3 class="text-2xl font-bold text-secondary mb-4"><i class="ph ph-pencil-line text-2xl mr-2"></i> Fazer Oferta</h3>
+                        <h3 class="text-xl font-bold text-secondary mb-4"><i class="ph ph-pencil-line text-2xl mr-2"></i> Fazer Oferta</h3>
                         <p class="text-gray-400 mb-6">Imóvel: Preço de Lista **${formatCurrency(gameState.property.price)}**</p>
                         <div class="w-full max-w-sm space-y-3 text-left">
                              <label class="label-text">Sua Oferta ($)</label>
@@ -1060,7 +1059,7 @@
                         : `<p class="text-green-400 font-bold">Ótimo! Inspeção limpa.</p>`;
                         
                     html = `
-                        <h3 class="text-2xl font-bold text-zone-3 mb-4"><i class="ph ph-toolbox text-2xl mr-2"></i> Inspeção do Imóvel</h3>
+                        <h3 class="text-xl font-bold text-zone-3 mb-4"><i class="ph ph-toolbox text-2xl mr-2"></i> Inspeção do Imóvel</h3>
                         ${message}
                         <div class="w-full max-w-sm space-y-3 text-left mt-4">
                             <p class="text-sm text-gray-500">Preço Contratado: **${formatCurrency(gameState.offer.price)}**</p>
@@ -1077,7 +1076,7 @@
                     const monthlyPaymentDetails = calculateTotalMonthlyPayment(gameState.offer.price, gameState.downPaymentPct, gameState.appraisalValue);
                     
                     html = `
-                        <h3 class="text-2xl font-bold text-zone-3 mb-4"><i class="ph ph-bank text-2xl mr-2"></i> Avaliação (Appraisal)</h3>
+                        <h3 class="text-xl font-bold text-zone-3 mb-4"><i class="ph ph-bank text-2xl mr-2"></i> Avaliação (Appraisal)</h3>
                         <p class="text-gray-400 mb-4">O banco avalia o valor de mercado para garantir o empréstimo.</p>
                         <div class="text-left w-full max-w-md bg-gray-700 p-4 rounded-lg shadow-inner">
                             <p class="font-bold text-accent">Valor Avaliado: **${formatCurrency(gameState.appraisalValue)}**</p>
@@ -1096,7 +1095,7 @@
                 
                 case '3-3': // Fechamento
                     html = `
-                        <h3 class="text-2xl font-bold text-zone-3 mb-4"><i class="ph ph-file-pdf text-2xl mr-2"></i> Fechamento do Contrato (Closing)</h3>
+                        <h3 class="text-xl font-bold text-zone-3 mb-4"><i class="ph ph-file-pdf text-2xl mr-2"></i> Fechamento do Contrato (Closing)</h3>
                         <p class="text-gray-400 mb-6">Todos os documentos foram assinados.</p>
                         <div class="text-left w-full max-w-md bg-gray-700 p-4 rounded-lg shadow-inner">
                             <p>Preço Final: **${formatCurrency(gameState.offer.price)}**</p>
@@ -1110,7 +1109,7 @@
 
                 case '3-4': // Chaves!
                     html = `
-                        <h3 class="text-2xl font-bold text-zone-3 mb-4"><i class="ph ph-key text-3xl mr-2 text-accent"></i> Parabéns! Você comprou o imóvel!</h3>
+                        <h3 class="text-xl font-bold text-zone-3 mb-4"><i class="ph ph-key text-3xl mr-2 text-accent"></i> Parabéns! Você comprou o imóvel!</h3>
                         <p class="text-gray-400 mb-6">O processo de compra foi concluído. Veja sua pontuação final.</p>
                         <button onclick="getFinalScore()" class="btn-primary mt-6">
                             <i class="ph ph-trophy text-xl mr-2"></i> Ver Pontuação Final
@@ -1120,9 +1119,9 @@
 
                 case 'complete': // FIM DE JOGO
                     html = `
-                        <h3 class="text-3xl font-black text-accent mb-4">🥳 JOGO COMPLETO!</h3>
+                        <h3 class="text-2xl font-black text-accent mb-4">🥳 JOGO COMPLETO!</h3>
                         <p class="text-gray-400 mb-2">Tempo Total: **${formatTime(gameState.endTime - gameState.startTime)}**</p>
-                        <p class="text-5xl font-extrabold text-white my-4">Score Final: ${formatCurrency(gameState.finalScore)}</p>
+                        <p class="text-4xl font-extrabold text-white my-4">Score Final: ${formatCurrency(gameState.finalScore)}</p>
 
                         <div class="w-full max-w-sm space-y-3 text-left">
                              <label class="label-text">Seu Nome para o Ranking</label>
@@ -1152,8 +1151,8 @@
                          listContainer.innerHTML = `
                              <div class="ranking-list">
                                  ${rankings.map((r, index) => `
-                                     <div class="ranking-item ${index === 0 ? 'bg-accent text-gray-900 font-extrabold' : ''}">
-                                         <span class="w-1/6">${index + 1}°</span>
+                                     <div class="ranking-item ${index === 0 ? 'bg-accent text-gray-900 font-extrabold' : 'bg-gray-800 text-white'} p-3 mb-2 rounded flex justify-between items-center text-sm">
+                                         <span class="w-1/6 font-black">${index + 1}°</span>
                                          <span class="w-3/6">${r.name}</span>
                                          <span class="w-2/6 text-right">${formatCurrency(r.score)}</span>
                                      </div>
@@ -1173,6 +1172,7 @@
                              <label class="label-text">Valor do Empréstimo ($)</label>
                              <input type="number" id="calc-loan" class="input-field" value="300000" oninput="calculateMortgage()">
                          </div>
+                         <p class="text-xs text-gray-500 mb-4">Simulação com taxa de **${(currentRate * 100).toFixed(3)}%** e prazo de 30 anos.</p>
 
                          <div id="calc-result" class="mt-4 p-4 bg-gray-700 rounded-lg w-full max-w-sm font-bold text-lg hidden">
                              Prestação Mensal P&I: <span class="text-accent" id="monthly-payment-display">R$ 0</span>
@@ -1180,8 +1180,8 @@
                      `;
                       window.calculateMortgage = () => {
                           const loan = parseFloat(document.getElementById('calc-loan').value);
-                          const annualRatePct = parseFloat(document.getElementById('calc-rate')?.value || (currentRate * 100).toFixed(3)) / 100;
-                          const termYears = parseFloat(document.getElementById('calc-term')?.value || 30);
+                          const annualRatePct = currentRate;
+                          const termYears = 30;
 
                           if (isNaN(loan) || loan <= 0) {
                               document.getElementById('calc-result').classList.add('hidden');
@@ -1198,7 +1198,7 @@
                               monthlyPayment = loan * (monthlyRate * Math.pow(1 + monthlyRate, totalPayments)) / (Math.pow(1 + monthlyRate, totalPayments) - 1);
                           }
                           
-                          document.getElementById('monthly-payment-display').innerText = formatCurrency(monthlyPayment);
+                          document.getElementById('monthly-payment-display').innerText = formatCurrencyFloat(monthlyPayment);
                           document.getElementById('calc-result').classList.remove('hidden');
                       };
                      setTimeout(() => calculateMortgage(), 100);
@@ -1229,9 +1229,9 @@
 
                 default:
                     html = `
-                         <h2 class="text-3xl font-black text-primary mb-4">Cristiano Jarbas Tycoon</h2>
-                         <p class="text-gray-400 mb-6">Siga o passo a passo no tabuleiro. A próxima etapa é indicada pelo destaque **Azul**.</p>
-                         <i class="ph ph-arrow-down-left text-8xl text-secondary animate-bounce"></i>
+                         <h2 class="text-2xl font-black text-primary mb-4">Cristiano Jarbas Tycoon</h2>
+                         <p class="text-gray-400 mb-6">Siga o passo a passo no tabuleiro. A próxima etapa é indicada pelo destaque **Vermelho**.</p>
+                         <i class="ph ph-arrow-down-left text-7xl text-secondary animate-bounce"></i>
                     `;
             }
 
