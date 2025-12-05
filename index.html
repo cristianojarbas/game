@@ -148,7 +148,7 @@
     <header class="bg-gray-900 shadow-lg py-3 border-b border-gray-800">
         <div class="max-w-7xl mx-auto px-4 text-center">
             <h1 class="text-xl md:text-3xl font-black text-white flex items-center justify-center gap-1">
-                <img src="https://i.imgur.com/kS5x87J.png" onerror="this.onerror=null; this.src='https://via.placeholder.com/32/FFC300/000000?text=CJ'" alt="Logo CJ Tycoon" class="h-6 w-6 md:h-8 w-8 rounded-full object-cover border-2 border-accent smoke-effect">
+                <img src="https://via.placeholder.com/64x64/FFFFFF/000000?text=CJ" alt="Logo CJ Tycoon" class="h-8 w-8 md:h-8 w-8 rounded-full object-cover border-2 border-accent smoke-effect" style="background-color: white;">
                 <span>CJ <span class="text-primary hidden sm:inline">Tycoon</span> (US/MA)</span>
             </h1>
         </div>
@@ -724,7 +724,7 @@
         window.simulatePreApproval = () => {
             const maxBudget = gameState.maxOfferPrice;
             const totalMonthlyDebt = Object.values(gameState.currentDebts).reduce((sum, debt) => sum + debt, 0);
-            const dti = (totalMonthlyDebt / gameState.income).toFixed(2);
+            const dti = gameState.income > 0 ? (totalMonthlyDebt / gameState.income).toFixed(2) : "N/A";
             
             if (maxBudget > 0) {
                  showModal("Pré-Aprovação Recebida", 
@@ -929,7 +929,7 @@
                 case 'start': // SELEÇÃO DE MERCADO
                     html = `
                         <div class="mb-6 relative">
-                             <img src="https://i.imgur.com/kS5x87J.png" alt="Logo da Imobiliária" class="w-28 h-28 object-contain mx-auto smoke-effect rounded-full border-2 border-accent">
+                             <img src="https://via.placeholder.com/64x64/FFFFFF/000000?text=CJ" alt="Logo da Imobiliária" class="w-28 h-28 object-contain mx-auto smoke-effect rounded-full border-2 border-accent" style="background-color: white;">
                         </div>
                         <h2 class="text-2xl font-black text-secondary mb-4">Selecione o Mercado (MA - EUA)</h2>
                         <div class="grid gap-4 w-full">
