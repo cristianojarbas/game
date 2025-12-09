@@ -148,7 +148,14 @@
     <header class="bg-gray-900 shadow-lg py-3 border-b border-gray-800">
         <div class="max-w-7xl mx-auto px-4 text-center">
             <h1 class="text-xl md:text-3xl font-black text-white flex items-center justify-center gap-1">
-                <img src="https://via.placeholder.com/64x64/FFFFFF/000000?text=CJ" alt="Logo CJ Tycoon" class="h-8 w-8 md:h-8 w-8 rounded-full object-cover border-2 border-accent smoke-effect" style="background-color: white;">
+                <div class="h-8 w-8 md:h-8 w-8 rounded-full border-2 border-accent smoke-effect flex items-center justify-center relative" style="background-color: white;">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#1E40FF" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="feather feather-home">
+                        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                        <polyline points="9 22 9 12 15 12 15 22"></polyline>
+                    </svg>
+                    <span class="absolute text-xs font-black text-gray-900" style="margin-top: 2px; color: black;">CJ</span> 
+                </div>
+                
                 <span>CJ <span class="text-primary hidden sm:inline">Tycoon</span> (US/MA)</span>
             </h1>
         </div>
@@ -929,7 +936,13 @@
                 case 'start': // SELEÇÃO DE MERCADO
                     html = `
                         <div class="mb-6 relative">
-                             <img src="https://via.placeholder.com/64x64/FFFFFF/000000?text=CJ" alt="Logo da Imobiliária" class="w-28 h-28 object-contain mx-auto smoke-effect rounded-full border-2 border-accent" style="background-color: white;">
+                             <div class="w-28 h-28 object-contain mx-auto smoke-effect rounded-full border-2 border-accent flex items-center justify-center relative" style="background-color: white;">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#1E40FF" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="feather feather-home">
+                                    <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                                    <polyline points="9 22 9 12 15 12 15 22"></polyline>
+                                </svg>
+                                <span class="absolute text-xl font-black text-gray-900" style="margin-top: 5px; color: black;">CJ</span>
+                            </div>
                         </div>
                         <h2 class="text-2xl font-black text-secondary mb-4">Selecione o Mercado (MA - EUA)</h2>
                         <div class="grid gap-4 w-full">
