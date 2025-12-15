@@ -488,7 +488,7 @@
             }
 
             const marketData = MARKET_SCENARIOS[gameState.market];
-            const propertyPrice = gameState.property.price;
+            const propertyPrice = gameState.property.initialPrice; // Usa o preço de listagem para base
             const offerPrice = gameState.offer.price || propertyPrice; 
             const timeElapsedMs = (gameState.endTime || Date.now()) - gameState.startTime;
             
@@ -502,7 +502,7 @@
 
             if (gameState.appraisalValue < offerPrice) {
                  const gap = offerPrice - gameState.appraisalValue;
-                 baseScore -= (gap / 10000) * (baseScore * 0.20); 
+                 baseScore -= (gap / 10000) * (baseScore * 0.20); // Penalidade por cash gap
             }
             
             const finalScore = Math.round(Math.max(0, baseScore));
@@ -948,15 +948,18 @@
                     break;
                 case '1-4': // Pré-Aprovação
                     const dtiBase = Object.values(gameState.currentDebts).reduce((sum, debt) => sum + debt, 0) / gameState.income;
-                    const dtiTarget = (gameState.maxOfferPrice > 0) ? calculateTotalMonthlyPayment(gameState.maxOfferPrice, gameState.downPaymentPct).Total / gameState.income : 0;
+                    const maxBudget = gameState.maxOfferPrice;
+                    const monthlyPaymentMax = maxBudget > 0 ? calculateTotalMonthlyPayment(maxBudget, gameState.downPaymentPct).Total : 0;
+                    
                     html = `
                         <h3 class="text-2xl font-bold mb-4"><i class="ph ph-file-text text-3xl mr-2"></i> 1-4. Pré-Aprovação</h3>
                         <div class="bg-gray-700 p-4 rounded mb-6 w-full max-w-sm text-left">
                             <p class="font-bold mb-2">Resumo Financeiro</p>
+                            <p>Orçamento Máximo: <span class="text-white">${formatCurrency(maxBudget)}</span></p>
+                            <p>Prestação MENSAL MÁXIMA (Estimada): <span class="text-accent font-bold">${formatCurrencyFloat(monthlyPaymentMax)}</span></p>
+                            <hr class="my-2 border-gray-600">
                             <p>Score de Crédito: <span class="text-white">${gameState.creditScore}</span></p>
-                            <p>Taxa Efetiva Estimada: <span class="text-white">${formatPercentPrecision(gameState.effectiveRate)}</span></p>
-                            <p>DTI (Base): <span class="text-white">${formatPercent(dtiBase)}</span></p>
-                            <p>DTI (Máximo p/ Aprovação): <span class="text-white">${formatPercent(MAX_DTI)}</span></p>
+                            <p>Dívidas Mensais Atuais: <span class="text-white">${formatCurrency(Object.values(gameState.currentDebts).reduce((sum, debt) => sum + debt, 0))}</span></p>
                         </div>
                         <button class="btn-primary" onclick="simulatePreApproval()">
                             <i class="ph ph-handshake"></i> SOLICITAR PRÉ-APROVAÇÃO
@@ -1062,11 +1065,18 @@
                     const finalDownPayment = gameState.offer.price * gameState.downPaymentPct;
                     const finalCashGap = Math.max(0, gameState.offer.price - gameState.appraisalValue);
                     const finalClosingCosts = Math.round(gameState.offer.price * 0.035);
+                    const finalPaymentDetails = calculateTotalMonthlyPayment(gameState.offer.price, gameState.downPaymentPct, gameState.appraisalValue);
 
+                    const requiredCash = finalDownPayment + finalCashGap;
+                    const finalCashOut = requiredCash + finalClosingCosts;
+                    
                     html = `
                         <h3 class="text-2xl font-bold mb-4"><i class="ph ph-file-pdf text-3xl mr-2"></i> 3-3. Documentos Finais</h3>
                         <div class="bg-gray-700 p-4 rounded mb-6 w-full max-w-sm text-left text-sm">
-                            <p class="font-bold mb-2">Resumo de Custos:</p>
+                            <p class="font-bold text-lg mb-2 text-accent">Prestação MENSAL da Hipoteca: ${formatCurrencyFloat(finalPaymentDetails.Total)}</p>
+                            <p class="text-gray-400 text-xs">(PI: ${formatCurrencyFloat(finalPaymentDetails.PI)} | Taxas: ${formatCurrencyFloat(finalPaymentDetails.Taxes)} | Seguro: ${formatCurrencyFloat(finalPaymentDetails.Insurance)} ${finalPaymentDetails.PMI > 0 ? `| PMI: ${formatCurrencyFloat(finalPaymentDetails.PMI)}` : ''})</p>
+                            <hr class="my-2 border-gray-600">
+                            <p class="font-bold mb-2">Resumo de Custos de Fechamento:</p>
                             <p>Preço Final Negociado: **${formatCurrency(gameState.offer.price)}**</p>
                             <p>Valor do Empréstimo (Hipoteca): **${formatCurrency(finalLoan)}**</p>
                             <hr class="my-1 border-gray-600">
@@ -1074,7 +1084,7 @@
                             <p>Cash Gap (Se Aval. < Preço): **${formatCurrency(finalCashGap)}**</p>
                             <p>Custos de Fechamento (aprox 3.5%): **${formatCurrency(finalClosingCosts)}**</p>
                             <hr class="my-1 border-gray-600">
-                            <p class="font-bold text-lg">Cash Total Necessário: **${formatCurrency(finalDownPayment + finalCashGap + finalClosingCosts)}**</p>
+                            <p class="font-bold text-lg">Cash Total Necessário: **${formatCurrency(finalCashOut)}**</p>
                             <p>Suas Economias: **${formatCurrency(gameState.savings)}**</p>
                         </div>
                         <button class="btn-primary" onclick="closeTransaction()">
